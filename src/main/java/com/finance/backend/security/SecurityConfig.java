@@ -17,107 +17,107 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import java.io.IOException;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private final ObjectMapper objectMapper;
+        private final ObjectMapper objectMapper;
 
-    public SecurityConfig(
-            ObjectMapper objectMapper) {
+        public SecurityConfig() {
+                this.objectMapper = new ObjectMapper();
+        }
 
-        this.objectMapper = objectMapper;
-    }
+        // ===================
+        // SECURITY FILTER CHAIN
+        // ===================
 
-    // ===================
-    // SECURITY FILTER CHAIN
-    // ===================
+        @Bean
+        public SecurityFilterChain securityFilterChain(
+                        HttpSecurity http,
+                        JwtFilter jwtFilter,
+                        RateLimitFilter rateLimitFilter)
+                        throws Exception {
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(
-            HttpSecurity http,
-            JwtFilter jwtFilter,
-            RateLimitFilter rateLimitFilter)
-            throws Exception {
+                return http
+                                .csrf(csrf -> csrf.disable())
 
-        return http
-                .csrf(csrf -> csrf.disable())
-
-                .cors(cors -> {
-                })
-
-                .sessionManagement(session -> session.sessionCreationPolicy(
-                        SessionCreationPolicy.STATELESS))
-
-                .exceptionHandling(exception -> exception
-
-                        .authenticationEntryPoint(
-                                (request,
-                                        response,
-                                        authException) -> {
-
-                                    writeErrorResponse(
-                                            response,
-                                            HttpServletResponse.SC_UNAUTHORIZED,
-                                            "Authentication required");
+                                .cors(cors -> {
                                 })
 
-                        .accessDeniedHandler(
-                                (request,
-                                        response,
-                                        accessDeniedException) -> {
+                                .sessionManagement(session -> session.sessionCreationPolicy(
+                                                SessionCreationPolicy.STATELESS))
 
-                                    writeErrorResponse(
-                                            response,
-                                            HttpServletResponse.SC_FORBIDDEN,
-                                            "Access denied");
-                                }))
+                                .exceptionHandling(exception -> exception
 
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/api/auth/**")
-                        .permitAll()
+                                                .authenticationEntryPoint(
+                                                                (request,
+                                                                                response,
+                                                                                authException) -> {
 
-                        .anyRequest()
-                        .authenticated())
+                                                                        writeErrorResponse(
+                                                                                        response,
+                                                                                        HttpServletResponse.SC_UNAUTHORIZED,
+                                                                                        "Authentication required");
+                                                                })
 
-                .addFilterBefore(
-                        jwtFilter,
-                        UsernamePasswordAuthenticationFilter.class)
+                                                .accessDeniedHandler(
+                                                                (request,
+                                                                                response,
+                                                                                accessDeniedException) -> {
 
-                .addFilterAfter(
-                        rateLimitFilter,
-                        JwtFilter.class)
+                                                                        writeErrorResponse(
+                                                                                        response,
+                                                                                        HttpServletResponse.SC_FORBIDDEN,
+                                                                                        "Access denied");
+                                                                }))
 
-                .build();
-    }
+                                .authorizeHttpRequests(auth -> auth
+                                                .requestMatchers(
+                                                                "/api/auth/**")
+                                                .permitAll()
 
-    // ===================
-    // PASSWORD ENCODER
-    // ===================
+                                                .anyRequest()
+                                                .authenticated())
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+                                .addFilterBefore(
+                                                jwtFilter,
+                                                UsernamePasswordAuthenticationFilter.class)
 
-    // ===================
-    // ERROR RESPONSE
-    // ===================
+                                .addFilterAfter(
+                                                rateLimitFilter,
+                                                JwtFilter.class)
 
-    private void writeErrorResponse(
-            HttpServletResponse response,
-            int status,
-            String message)
-            throws Exception {
+                                .build();
+        }
 
-        response.setStatus(status);
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
+        // ===================
+        // PASSWORD ENCODER
+        // ===================
 
-        objectMapper.writeValue(
-                response.getWriter(),
-                ApiResponse.error(message));
-    }
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+                return new BCryptPasswordEncoder();
+        }
+
+        // ===================
+        // ERROR RESPONSE
+        // ===================
+
+        private void writeErrorResponse(
+                        HttpServletResponse response,
+                        int status,
+                        String message)
+                        throws IOException {
+
+                response.setStatus(status);
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+
+                objectMapper.writeValue(
+                                response.getWriter(),
+                                ApiResponse.error(message));
+        }
 }

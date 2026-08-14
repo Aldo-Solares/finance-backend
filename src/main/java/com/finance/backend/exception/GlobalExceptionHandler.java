@@ -29,6 +29,9 @@ public class GlobalExceptionHandler {
                                                 "JSON inválido o con formato incorrecto"));
         }
 
+        // ===================
+        // 400
+        // ===================
         @ExceptionHandler(BadRequestException.class)
         public ResponseEntity<ApiResponse<Void>> handleBadRequest(
                         BadRequestException exception) {
@@ -39,6 +42,22 @@ public class GlobalExceptionHandler {
                                                 exception.getMessage()));
         }
 
+        // ===================
+        // 401
+        // ===================
+        @ExceptionHandler(UnauthorizedException.class)
+        public ResponseEntity<ApiResponse<Void>> handleUnauthorized(
+                        UnauthorizedException exception) {
+
+                return ResponseEntity
+                                .status(HttpStatus.UNAUTHORIZED)
+                                .body(ApiResponse.error(
+                                                exception.getMessage()));
+        }
+
+        // ===================
+        // 403
+        // ===================
         @ExceptionHandler(ForbiddenException.class)
         public ResponseEntity<ApiResponse<Void>> handleForbidden(
                         ForbiddenException exception) {
@@ -49,6 +68,9 @@ public class GlobalExceptionHandler {
                                                 exception.getMessage()));
         }
 
+        // ===================
+        // 404
+        // ===================
         @ExceptionHandler(ResourceNotFoundException.class)
         public ResponseEntity<ApiResponse<Void>> handleResourceNotFound(
                         ResourceNotFoundException exception) {
@@ -59,6 +81,9 @@ public class GlobalExceptionHandler {
                                                 exception.getMessage()));
         }
 
+        // ===================
+        // 409
+        // ===================
         @ExceptionHandler(ConflictException.class)
         public ResponseEntity<ApiResponse<Void>> handleConflict(
                         ConflictException exception) {
@@ -69,6 +94,9 @@ public class GlobalExceptionHandler {
                                                 exception.getMessage()));
         }
 
+        // ===================
+        // 500
+        // ===================
         @ExceptionHandler(Exception.class)
         public ResponseEntity<ApiResponse<Void>> handleException(
                         Exception exception) {

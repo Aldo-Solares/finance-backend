@@ -2,6 +2,7 @@ package com.finance.backend.modules.user.service;
 
 import com.finance.backend.exception.ConflictException;
 import com.finance.backend.exception.ResourceNotFoundException;
+import com.finance.backend.exception.UnauthorizedException;
 import com.finance.backend.modules.user.dto.user.ChangePasswordRequest;
 import com.finance.backend.modules.user.dto.user.ChangeRoleRequest;
 import com.finance.backend.modules.user.dto.user.UpdateUserRequest;
@@ -29,6 +30,10 @@ public class UserService {
                 this.passwordEncoder = passwordEncoder;
         }
 
+        // ===================
+        // CONSULTAS
+        // ===================
+
         public List<UserResponse> findAll() {
 
                 return userRepository
@@ -52,6 +57,10 @@ public class UserService {
 
                 return UserMapper.toResponse(user);
         }
+
+        // ===================
+        // ACTUALIZACIÓN DE PERFIL
+        // ===================
 
         public UserResponse updateMe(
                         String email,
@@ -80,6 +89,9 @@ public class UserService {
                         }
 
                         currentUser.setEmailVerified(false);
+
+                        currentUser.setEmailVerificationTokenHash(null);
+                        currentUser.setEmailVerificationTokenExpiresAt(null);
                 }
 
                 UserMapper.updateEntity(
@@ -90,6 +102,10 @@ public class UserService {
 
                 return UserMapper.toResponse(savedUser);
         }
+
+        // ===================
+        // CAMBIO DE CONTRASEÑA
+        // ===================
 
         public void changePassword(
                         String email,
@@ -102,7 +118,7 @@ public class UserService {
                                 currentUser.getPassword());
 
                 if (!matches) {
-                        throw new IllegalArgumentException(
+                        throw new UnauthorizedException(
                                         "La contraseña actual es incorrecta");
                 }
 
@@ -110,8 +126,15 @@ public class UserService {
                                 passwordEncoder.encode(
                                                 request.newPassword()));
 
+                currentUser.setPasswordResetTokenHash(null);
+                currentUser.setPasswordResetTokenExpiresAt(null);
+
                 userRepository.save(currentUser);
         }
+
+        // ===================
+        // CAMBIO DE ROL
+        // ===================
 
         public UserResponse changeRole(
                         Long userId,
@@ -126,6 +149,10 @@ public class UserService {
                                 userRepository.save(user));
         }
 
+        // ===================
+        // ELIMINACIÓN
+        // ===================
+
         public void delete(
                         Long userId) {
 
@@ -133,6 +160,10 @@ public class UserService {
 
                 userRepository.delete(user);
         }
+
+        // ===================
+        // HELPERS
+        // ===================
 
         private User getUserById(
                         Long userId) {
@@ -148,8 +179,7 @@ public class UserService {
                         String email) {
 
                 return userRepository
-                                .findByEmailIgnoreCase(
-                                                email)
+                                .findByEmailIgnoreCase(email)
                                 .orElseThrow(
                                                 () -> new ResourceNotFoundException(
                                                                 "Usuario no encontrado"));

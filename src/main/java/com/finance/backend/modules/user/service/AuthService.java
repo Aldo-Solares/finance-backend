@@ -1,7 +1,10 @@
 package com.finance.backend.modules.user.service;
 
+import com.finance.backend.exception.BadRequestException;
 import com.finance.backend.exception.ConflictException;
+import com.finance.backend.exception.ForbiddenException;
 import com.finance.backend.exception.ResourceNotFoundException;
+import com.finance.backend.exception.UnauthorizedException;
 
 import com.finance.backend.modules.user.dto.auth.ForgotPasswordRequest;
 import com.finance.backend.modules.user.dto.auth.LoginRequest;
@@ -19,253 +22,330 @@ import com.finance.backend.modules.user.repository.UserRepository;
 
 import com.finance.backend.security.JwtService;
 
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.HexFormat;
 
 @Service
 public class AuthService {
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
+        private final UserRepository userRepository;
+        private final PasswordEncoder passwordEncoder;
+        private final JwtService jwtService;
+        private final CustomUserDetailsService customUserDetailsService;
 
-    private final SecureRandom secureRandom = new SecureRandom();
+        private final SecureRandom secureRandom = new SecureRandom();
 
-    public AuthService(
-            UserRepository userRepository,
-            PasswordEncoder passwordEncoder,
-            JwtService jwtService) {
+        public AuthService(
+                        UserRepository userRepository,
+                        PasswordEncoder passwordEncoder,
+                        JwtService jwtService,
+                        CustomUserDetailsService customUserDetailsService) {
 
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtService = jwtService;
-    }
-
-    public RegisterResponse register(
-            RegisterRequest request) {
-
-        String email = normalizeEmail(request.email());
-
-        if (userRepository.existsByEmailIgnoreCase(email)) {
-            throw new ConflictException(
-                    "El correo ya está registrado");
+                this.userRepository = userRepository;
+                this.passwordEncoder = passwordEncoder;
+                this.jwtService = jwtService;
+                this.customUserDetailsService = customUserDetailsService;
         }
 
-        User user = new User();
+        // ===================
+        // REGISTRO
+        // ===================
 
-        user.setName(
-                request.name().trim());
+        public RegisterResponse register(
+                        RegisterRequest request) {
 
-        user.setLastName(
-                normalize(request.lastName()));
+                String email = normalizeEmail(request.email());
 
-        user.setSecondLastName(
-                normalize(request.secondLastName()));
+                if (userRepository.existsByEmailIgnoreCase(email)) {
+                        throw new ConflictException(
+                                        "El correo ya está registrado");
+                }
 
-        user.setEmail(email);
+                User user = new User();
 
-        user.setPassword(
-                passwordEncoder.encode(
-                        request.password()));
+                user.setName(
+                                request.name().trim());
 
-        user.setRole(Role.DEBTOR);
+                user.setLastName(
+                                normalize(request.lastName()));
 
-        user.setEmailVerified(false);
+                user.setSecondLastName(
+                                normalize(request.secondLastName()));
 
-        String verificationToken = generateSecureToken();
+                user.setEmail(email);
 
-        user.setEmailVerificationToken(
-                verificationToken);
+                user.setPassword(
+                                passwordEncoder.encode(
+                                                request.password()));
 
-        user.setEmailVerificationTokenExpiresAt(
-                LocalDateTime.now()
-                        .plusHours(24));
+                user.setRole(Role.DEBTOR);
+                user.setEmailVerified(false);
 
-        User savedUser = userRepository.save(user);
+                String verificationToken = generateSecureToken();
 
-        return new RegisterResponse(
-                UserMapper.toResponse(savedUser),
-                verificationToken);
-    }
+                user.setEmailVerificationTokenHash(
+                                hashToken(verificationToken));
 
-    public void verifyEmail(
-            VerifyEmailRequest request) {
+                user.setEmailVerificationTokenExpiresAt(
+                                LocalDateTime.now()
+                                                .plusHours(24));
 
-        User user = userRepository
-                .findByEmailVerificationToken(
-                        request.token())
-                .orElseThrow(
-                        () -> new ResourceNotFoundException(
-                                "Token de verificación inválido"));
+                User savedUser = userRepository.save(user);
 
-        LocalDateTime expiresAt = user.getEmailVerificationTokenExpiresAt();
-
-        if (expiresAt == null
-                || expiresAt.isBefore(
-                        LocalDateTime.now())) {
-
-            throw new IllegalArgumentException(
-                    "El token de verificación expiró");
+                return new RegisterResponse(
+                                UserMapper.toResponse(savedUser),
+                                verificationToken);
         }
 
-        user.setEmailVerified(true);
+        // ===================
+        // VERIFICACIÓN DE EMAIL
+        // ===================
 
-        user.setEmailVerificationToken(null);
+        public void verifyEmail(
+                        VerifyEmailRequest request) {
 
-        user.setEmailVerificationTokenExpiresAt(null);
+                String tokenHash = hashToken(request.token());
 
-        userRepository.save(user);
-    }
+                User user = userRepository
+                                .findByEmailVerificationTokenHash(
+                                                tokenHash)
+                                .orElseThrow(
+                                                () -> new ResourceNotFoundException(
+                                                                "Token de verificación inválido"));
 
-    public String resendVerification(
-            ResendVerificationRequest request) {
+                LocalDateTime expiresAt = user.getEmailVerificationTokenExpiresAt();
 
-        String email = normalizeEmail(request.email());
+                if (expiresAt == null
+                                || expiresAt.isBefore(LocalDateTime.now())) {
 
-        User user = userRepository
-                .findByEmailIgnoreCase(email)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException(
-                                "Usuario no encontrado"));
+                        throw new BadRequestException(
+                                        "El token de verificación expiró");
+                }
 
-        if (user.getEmailVerified()) {
-            throw new ConflictException(
-                    "El correo ya está verificado");
+                user.setEmailVerified(true);
+
+                user.setEmailVerificationTokenHash(null);
+                user.setEmailVerificationTokenExpiresAt(null);
+
+                userRepository.save(user);
         }
 
-        String verificationToken = generateSecureToken();
+        // ===================
+        // REENVÍO DE VERIFICACIÓN
+        // ===================
 
-        user.setEmailVerificationToken(
-                verificationToken);
+        public String resendVerification(
+                        ResendVerificationRequest request) {
 
-        user.setEmailVerificationTokenExpiresAt(
-                LocalDateTime.now()
-                        .plusHours(24));
+                String email = normalizeEmail(request.email());
 
-        userRepository.save(user);
+                User user = userRepository
+                                .findByEmailIgnoreCase(email)
+                                .orElseThrow(
+                                                () -> new ResourceNotFoundException(
+                                                                "Usuario no encontrado"));
 
-        return verificationToken;
-    }
+                if (user.getEmailVerified()) {
+                        throw new ConflictException(
+                                        "El correo ya está verificado");
+                }
 
-    public LoginResponse login(
-            LoginRequest request) {
+                String verificationToken = generateSecureToken();
 
-        String email = normalizeEmail(request.email());
+                user.setEmailVerificationTokenHash(
+                                hashToken(verificationToken));
 
-        User user = userRepository
-                .findByEmailIgnoreCase(email)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException(
-                                "Usuario no encontrado"));
+                user.setEmailVerificationTokenExpiresAt(
+                                LocalDateTime.now()
+                                                .plusHours(24));
 
-        String token = jwtService.generateToken(user);
+                userRepository.save(user);
 
-        return new LoginResponse(
-                token,
-                user.getUserId(),
-                user.getEmail(),
-                user.getName(),
-                user.getRole());
-    }
-
-    public String forgotPassword(
-            ForgotPasswordRequest request) {
-
-        String email = normalizeEmail(request.email());
-
-        User user = userRepository
-                .findByEmailIgnoreCase(email)
-                .orElse(null);
-
-        if (user == null
-                || !user.getEmailVerified()) {
-
-            return null;
+                return verificationToken;
         }
 
-        String resetToken = generateSecureToken();
+        // ===================
+        // LOGIN
+        // ===================
 
-        user.setPasswordResetToken(
-                resetToken);
+        public LoginResponse login(
+                        LoginRequest request) {
 
-        user.setPasswordResetTokenExpiresAt(
-                LocalDateTime.now()
-                        .plusMinutes(30));
+                String email = normalizeEmail(request.email());
 
-        userRepository.save(user);
+                User user = userRepository
+                                .findByEmailIgnoreCase(email)
+                                .orElseThrow(
+                                                () -> new UnauthorizedException(
+                                                                "Correo o contraseña incorrectos"));
 
-        return resetToken;
-    }
+                if (!passwordEncoder.matches(
+                                request.password(),
+                                user.getPassword())) {
 
-    public void resetPassword(
-            ResetPasswordRequest request) {
+                        throw new UnauthorizedException(
+                                        "Correo o contraseña incorrectos");
+                }
 
-        User user = userRepository
-                .findByPasswordResetToken(
-                        request.token())
-                .orElseThrow(
-                        () -> new ResourceNotFoundException(
-                                "Token de recuperación inválido"));
+                if (!user.getEmailVerified()) {
+                        throw new ForbiddenException(
+                                        "El correo no ha sido verificado");
+                }
 
-        LocalDateTime expiresAt = user.getPasswordResetTokenExpiresAt();
+                UserDetails userDetails = customUserDetailsService
+                                .loadUserByUsername(user.getEmail());
 
-        if (expiresAt == null
-                || expiresAt.isBefore(
-                        LocalDateTime.now())) {
+                String token = jwtService.generateToken(userDetails);
 
-            throw new IllegalArgumentException(
-                    "El token de recuperación expiró");
+                return new LoginResponse(
+                                token,
+                                user.getUserId(),
+                                user.getEmail(),
+                                user.getName(),
+                                user.getRole());
         }
 
-        user.setPassword(
-                passwordEncoder.encode(
-                        request.newPassword()));
+        // ===================
+        // RECUPERACIÓN DE PASSWORD
+        // ===================
 
-        user.setPasswordResetToken(null);
+        public String forgotPassword(
+                        ForgotPasswordRequest request) {
 
-        user.setPasswordResetTokenExpiresAt(null);
+                String email = normalizeEmail(request.email());
 
-        userRepository.save(user);
-    }
+                User user = userRepository
+                                .findByEmailIgnoreCase(email)
+                                .orElse(null);
 
-    // ===================
-    // HELPERS
-    // ===================
-    private String generateSecureToken() {
+                if (user == null
+                                || !user.getEmailVerified()) {
 
-        byte[] bytes = new byte[32];
+                        return null;
+                }
 
-        secureRandom.nextBytes(bytes);
+                String resetToken = generateSecureToken();
 
-        return Base64
-                .getUrlEncoder()
-                .withoutPadding()
-                .encodeToString(bytes);
-    }
+                user.setPasswordResetTokenHash(
+                                hashToken(resetToken));
 
-    private String normalizeEmail(
-            String email) {
+                user.setPasswordResetTokenExpiresAt(
+                                LocalDateTime.now()
+                                                .plusMinutes(30));
 
-        return email
-                .trim()
-                .toLowerCase();
-    }
+                userRepository.save(user);
 
-    private String normalize(
-            String value) {
-
-        if (value == null) {
-            return null;
+                return resetToken;
         }
 
-        String normalized = value.trim();
+        // ===================
+        // RESET DE PASSWORD
+        // ===================
 
-        return normalized.isEmpty()
-                ? null
-                : normalized;
-    }
+        public void resetPassword(
+                        ResetPasswordRequest request) {
+
+                String tokenHash = hashToken(request.token());
+
+                User user = userRepository
+                                .findByPasswordResetTokenHash(
+                                                tokenHash)
+                                .orElseThrow(
+                                                () -> new ResourceNotFoundException(
+                                                                "Token de recuperación inválido"));
+
+                LocalDateTime expiresAt = user.getPasswordResetTokenExpiresAt();
+
+                if (expiresAt == null
+                                || expiresAt.isBefore(LocalDateTime.now())) {
+
+                        throw new BadRequestException(
+                                        "El token de recuperación expiró");
+                }
+
+                user.setPassword(
+                                passwordEncoder.encode(
+                                                request.newPassword()));
+
+                user.setPasswordResetTokenHash(null);
+                user.setPasswordResetTokenExpiresAt(null);
+
+                userRepository.save(user);
+        }
+
+        // ===================
+        // GENERACIÓN DE TOKEN
+        // ===================
+
+        private String generateSecureToken() {
+
+                byte[] bytes = new byte[32];
+
+                secureRandom.nextBytes(bytes);
+
+                return Base64
+                                .getUrlEncoder()
+                                .withoutPadding()
+                                .encodeToString(bytes);
+        }
+
+        // ===================
+        // HASH DE TOKEN
+        // ===================
+
+        private String hashToken(
+                        String token) {
+
+                try {
+
+                        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+
+                        byte[] hash = digest.digest(
+                                        token.getBytes(StandardCharsets.UTF_8));
+
+                        return HexFormat.of()
+                                        .formatHex(hash);
+
+                } catch (NoSuchAlgorithmException exception) {
+
+                        throw new IllegalStateException(
+                                        "SHA-256 no está disponible",
+                                        exception);
+                }
+        }
+
+        // ===================
+        // NORMALIZACIÓN
+        // ===================
+
+        private String normalizeEmail(
+                        String email) {
+
+                return email
+                                .trim()
+                                .toLowerCase();
+        }
+
+        private String normalize(
+                        String value) {
+
+                if (value == null) {
+                        return null;
+                }
+
+                String normalized = value.trim();
+
+                return normalized.isEmpty()
+                                ? null
+                                : normalized;
+        }
 }
