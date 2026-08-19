@@ -25,7 +25,8 @@ public final class UserMapper {
                 user.getLastName(),
                 user.getSecondLastName(),
                 user.getEmail(),
-                user.getRole());
+                user.getRole(),
+                user.getEmailVerified());
     }
 
     private static String normalize(
