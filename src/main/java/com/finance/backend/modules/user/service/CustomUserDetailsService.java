@@ -14,37 +14,37 @@ import java.util.List;
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private final UserRepository userRepository;
+        private final UserRepository userRepository;
 
-    public CustomUserDetailsService(
-            UserRepository userRepository) {
+        public CustomUserDetailsService(
+                        UserRepository userRepository) {
 
-        this.userRepository = userRepository;
-    }
+                this.userRepository = userRepository;
+        }
 
-    // ===================
-    // CARGA DE USUARIO
-    // ===================
+        // ===================
+        // CARGA DE USUARIO
+        // ===================
 
-    @Override
-    public UserDetails loadUserByUsername(
-            String email)
-            throws UsernameNotFoundException {
+        @Override
+        public UserDetails loadUserByUsername(
+                        String email)
+                        throws UsernameNotFoundException {
 
-        User user = userRepository
-                .findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new UsernameNotFoundException(
-                        "Usuario no encontrado"));
+                User user = userRepository
+                                .findByEmailIgnoreCase(email)
+                                .orElseThrow(() -> new UsernameNotFoundException(
+                                                "Usuario no encontrado"));
 
-        return new org.springframework.security.core.userdetails.User(
-                user.getEmail(),
-                user.getPassword(),
-                user.getEmailVerified(),
-                true,
-                true,
-                true,
-                List.of(
-                        new SimpleGrantedAuthority(
-                                "ROLE_" + user.getRole().name())));
-    }
+                return new org.springframework.security.core.userdetails.User(
+                                user.getEmail(),
+                                user.getPassword(),
+                                user.getEmailVerified(),
+                                true,
+                                true,
+                                true,
+                                List.of(
+                                                new SimpleGrantedAuthority(
+                                                                "ROLE_" + user.getRole().name())));
+        }
 }

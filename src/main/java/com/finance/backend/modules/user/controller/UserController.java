@@ -28,12 +28,13 @@ public class UserController {
         }
 
         @GetMapping("/me")
-        public ApiResponse<UserResponse> getMe(
+        public ApiResponse<UserResponse> findCurrentUser(
                         Authentication authentication) {
 
-                return ApiResponse.success(
-                                userService.getMe(
-                                                authentication.getName()));
+                UserResponse response = userService.findCurrentUser(
+                                authentication.getName());
+
+                return ApiResponse.success(response);
         }
 
         @PutMapping("/me")

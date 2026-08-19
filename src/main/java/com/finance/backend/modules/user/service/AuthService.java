@@ -21,10 +21,12 @@ import com.finance.backend.modules.user.model.User;
 import com.finance.backend.modules.user.repository.UserRepository;
 
 import com.finance.backend.security.JwtService;
+import com.finance.backend.utils.email.UserEmailService;
 
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -35,12 +37,14 @@ import java.util.Base64;
 import java.util.HexFormat;
 
 @Service
+@Transactional
 public class AuthService {
 
         private final UserRepository userRepository;
         private final PasswordEncoder passwordEncoder;
         private final JwtService jwtService;
         private final CustomUserDetailsService customUserDetailsService;
+        private final UserEmailService userEmailService;
 
         private final SecureRandom secureRandom = new SecureRandom();
 
@@ -48,12 +52,14 @@ public class AuthService {
                         UserRepository userRepository,
                         PasswordEncoder passwordEncoder,
                         JwtService jwtService,
-                        CustomUserDetailsService customUserDetailsService) {
+                        CustomUserDetailsService customUserDetailsService,
+                        UserEmailService userEmailService) {
 
                 this.userRepository = userRepository;
                 this.passwordEncoder = passwordEncoder;
                 this.jwtService = jwtService;
                 this.customUserDetailsService = customUserDetailsService;
+                this.userEmailService = userEmailService;
         }
 
         // ===================
@@ -87,7 +93,7 @@ public class AuthService {
                                 passwordEncoder.encode(
                                                 request.password()));
 
-                user.setRole(Role.DEBTOR);
+                user.setRole(Role.USER);
                 user.setEmailVerified(false);
 
                 String verificationToken = generateSecureToken();
@@ -101,9 +107,12 @@ public class AuthService {
 
                 User savedUser = userRepository.save(user);
 
-                return new RegisterResponse(
-                                UserMapper.toResponse(savedUser),
+                userEmailService.sendVerificationEmail(
+                                savedUser.getEmail(),
                                 verificationToken);
+
+                return new RegisterResponse(
+                                UserMapper.toResponse(savedUser));
         }
 
         // ===================
@@ -116,8 +125,7 @@ public class AuthService {
                 String tokenHash = hashToken(request.token());
 
                 User user = userRepository
-                                .findByEmailVerificationTokenHash(
-                                                tokenHash)
+                                .findByEmailVerificationTokenHash(tokenHash)
                                 .orElseThrow(
                                                 () -> new ResourceNotFoundException(
                                                                 "Token de verificación inválido"));
@@ -132,7 +140,6 @@ public class AuthService {
                 }
 
                 user.setEmailVerified(true);
-
                 user.setEmailVerificationTokenHash(null);
                 user.setEmailVerificationTokenExpiresAt(null);
 
@@ -143,7 +150,7 @@ public class AuthService {
         // REENVÍO DE VERIFICACIÓN
         // ===================
 
-        public String resendVerification(
+        public void resendVerification(
                         ResendVerificationRequest request) {
 
                 String email = normalizeEmail(request.email());
@@ -154,7 +161,9 @@ public class AuthService {
                                                 () -> new ResourceNotFoundException(
                                                                 "Usuario no encontrado"));
 
-                if (user.getEmailVerified()) {
+                if (Boolean.TRUE.equals(
+                                user.getEmailVerified())) {
+
                         throw new ConflictException(
                                         "El correo ya está verificado");
                 }
@@ -170,13 +179,16 @@ public class AuthService {
 
                 userRepository.save(user);
 
-                return verificationToken;
+                userEmailService.sendVerificationEmail(
+                                user.getEmail(),
+                                verificationToken);
         }
 
         // ===================
         // LOGIN
         // ===================
 
+        @Transactional(readOnly = true)
         public LoginResponse login(
                         LoginRequest request) {
 
@@ -196,29 +208,29 @@ public class AuthService {
                                         "Correo o contraseña incorrectos");
                 }
 
-                if (!user.getEmailVerified()) {
+                if (!Boolean.TRUE.equals(
+                                user.getEmailVerified())) {
+
                         throw new ForbiddenException(
                                         "El correo no ha sido verificado");
                 }
 
                 UserDetails userDetails = customUserDetailsService
-                                .loadUserByUsername(user.getEmail());
+                                .loadUserByUsername(
+                                                user.getEmail());
 
                 String token = jwtService.generateToken(userDetails);
 
                 return new LoginResponse(
                                 token,
-                                user.getUserId(),
-                                user.getEmail(),
-                                user.getName(),
-                                user.getRole());
+                                UserMapper.toResponse(user));
         }
 
         // ===================
         // RECUPERACIÓN DE PASSWORD
         // ===================
 
-        public String forgotPassword(
+        public void forgotPassword(
                         ForgotPasswordRequest request) {
 
                 String email = normalizeEmail(request.email());
@@ -228,9 +240,10 @@ public class AuthService {
                                 .orElse(null);
 
                 if (user == null
-                                || !user.getEmailVerified()) {
+                                || !Boolean.TRUE.equals(
+                                                user.getEmailVerified())) {
 
-                        return null;
+                        return;
                 }
 
                 String resetToken = generateSecureToken();
@@ -244,7 +257,9 @@ public class AuthService {
 
                 userRepository.save(user);
 
-                return resetToken;
+                userEmailService.sendPasswordResetEmail(
+                                user.getEmail(),
+                                resetToken);
         }
 
         // ===================
@@ -257,8 +272,7 @@ public class AuthService {
                 String tokenHash = hashToken(request.token());
 
                 User user = userRepository
-                                .findByPasswordResetTokenHash(
-                                                tokenHash)
+                                .findByPasswordResetTokenHash(tokenHash)
                                 .orElseThrow(
                                                 () -> new ResourceNotFoundException(
                                                                 "Token de recuperación inválido"));
@@ -307,10 +321,12 @@ public class AuthService {
 
                 try {
 
-                        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+                        MessageDigest digest = MessageDigest.getInstance(
+                                        "SHA-256");
 
                         byte[] hash = digest.digest(
-                                        token.getBytes(StandardCharsets.UTF_8));
+                                        token.getBytes(
+                                                        StandardCharsets.UTF_8));
 
                         return HexFormat.of()
                                         .formatHex(hash);

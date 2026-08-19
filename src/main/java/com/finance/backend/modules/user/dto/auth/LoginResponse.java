@@ -1,11 +1,8 @@
 package com.finance.backend.modules.user.dto.auth;
 
-import com.finance.backend.modules.user.model.Role;
+import com.finance.backend.modules.user.dto.user.UserResponse;
 
 public record LoginResponse(
-        String token,
-        Long userId,
-        String email,
-        String name,
-        Role role) {
+                String token,
+                UserResponse user) {
 }

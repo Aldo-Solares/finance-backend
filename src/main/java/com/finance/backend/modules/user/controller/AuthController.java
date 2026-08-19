@@ -12,9 +12,6 @@ import com.finance.backend.modules.user.dto.auth.VerifyEmailRequest;
 import com.finance.backend.modules.user.service.AuthService;
 
 import jakarta.validation.Valid;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -30,17 +27,14 @@ public class AuthController {
         }
 
         @PostMapping("/register")
-        public ResponseEntity<ApiResponse<RegisterResponse>> register(
+        public ApiResponse<RegisterResponse> register(
                         @Valid @RequestBody RegisterRequest request) {
 
                 RegisterResponse response = authService.register(request);
 
-                return ResponseEntity
-                                .status(HttpStatus.CREATED)
-                                .body(
-                                                ApiResponse.success(
-                                                                "Usuario registrado. Verifica tu correo.",
-                                                                response));
+                return ApiResponse.success(
+                                "Usuario registrado. Verifica tu correo.",
+                                response);
         }
 
         @PostMapping("/verify-email")

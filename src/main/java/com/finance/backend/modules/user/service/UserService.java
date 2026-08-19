@@ -13,6 +13,7 @@ import com.finance.backend.modules.user.repository.UserRepository;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -50,10 +51,15 @@ public class UserService {
                                 getUserById(userId));
         }
 
-        public UserResponse getMe(
+        @Transactional(readOnly = true)
+        public UserResponse findCurrentUser(
                         String email) {
 
-                User user = getUserByEmail(email);
+                User user = userRepository
+                                .findByEmailIgnoreCase(email)
+                                .orElseThrow(
+                                                () -> new ResourceNotFoundException(
+                                                                "Usuario no encontrado"));
 
                 return UserMapper.toResponse(user);
         }

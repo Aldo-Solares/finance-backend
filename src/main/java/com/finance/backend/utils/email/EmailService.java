@@ -1,3 +1,5 @@
+// @/utils/email/EmailService.java
+
 package com.finance.backend.utils.email;
 
 import jakarta.mail.MessagingException;
@@ -22,6 +24,10 @@ public class EmailService {
         this.from = from;
     }
 
+    // ===================
+    // ACTION EMAIL
+    // ===================
+
     public void sendActionEmail(
             String to,
             String subject,
@@ -31,6 +37,7 @@ public class EmailService {
             String actionUrl) {
 
         try {
+
             MimeMessage mimeMessage = mailSender.createMimeMessage();
 
             MimeMessageHelper helper = new MimeMessageHelper(
@@ -53,11 +60,16 @@ public class EmailService {
             mailSender.send(mimeMessage);
 
         } catch (MessagingException exception) {
+
             throw new IllegalStateException(
                     "No fue posible enviar el correo",
                     exception);
         }
     }
+
+    // ===================
+    // TEMPLATE
+    // ===================
 
     private String buildActionEmail(
             String title,
@@ -120,7 +132,7 @@ public class EmailService {
                                                 letter-spacing: 3px;
                                                 color: #737373;
                                             ">
-                                                FINANCE
+                                                ISHA
                                             </div>
                                         </td>
                                     </tr>
@@ -230,7 +242,7 @@ public class EmailService {
                                                 font-size: 11px;
                                                 color: #a3a3a3;
                                             ">
-                                                Este es un correo automático de Finance.
+                                                Este es un correo automático de Isha.
                                             </p>
                                         </td>
                                     </tr>
