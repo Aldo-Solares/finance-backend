@@ -21,132 +21,132 @@ import java.util.List;
 @Transactional
 public class InvestmentAccountService {
 
-    private final InvestmentAccountRepository investmentAccountRepository;
-    private final UserRepository userRepository;
+        private final InvestmentAccountRepository investmentAccountRepository;
+        private final UserRepository userRepository;
 
-    public InvestmentAccountService(
-            InvestmentAccountRepository investmentAccountRepository,
-            UserRepository userRepository) {
-        this.investmentAccountRepository = investmentAccountRepository;
-        this.userRepository = userRepository;
-    }
-
-    // ===================
-    // QUERIES
-    // ===================
-
-    @Transactional(readOnly = true)
-    public List<InvestmentAccountResponse> findAll() {
-        return investmentAccountRepository
-                .findAll()
-                .stream()
-                .map(InvestmentAccountMapper::toResponse)
-                .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public InvestmentAccountResponse findById(
-            Long investmentAccountId) {
-        return InvestmentAccountMapper.toResponse(
-                getEntity(investmentAccountId));
-    }
-
-    // ===================
-    // CRUD
-    // ===================
-
-    public InvestmentAccountResponse create(
-            CreateInvestmentAccountRequest request) {
-
-        User user = getUser(request.userId());
-
-        InvestmentAccount account = InvestmentAccountMapper.toEntity(
-                request,
-                user);
-
-        InvestmentAccount savedAccount = investmentAccountRepository.save(account);
-
-        return InvestmentAccountMapper.toResponse(
-                savedAccount);
-    }
-
-    public InvestmentAccountResponse update(
-            Long investmentAccountId,
-            UpdateInvestmentAccountRequest request) {
-
-        InvestmentAccount account = getEntity(investmentAccountId);
-
-        InvestmentAccountMapper.updateEntity(
-                account,
-                request);
-
-        InvestmentAccount updatedAccount = investmentAccountRepository.save(account);
-
-        return InvestmentAccountMapper.toResponse(
-                updatedAccount);
-    }
-
-    // ===================
-    // BALANCE
-    // ===================
-
-    public void increaseBalance(
-            InvestmentAccount account,
-            BigDecimal amount) {
-
-        account.setBalance(
-                money(
-                        account.getBalance()
-                                .add(amount)));
-
-        investmentAccountRepository.save(account);
-    }
-
-    public void withdraw(
-            InvestmentAccount account,
-            BigDecimal amount) {
-
-        if (account.getBalance().compareTo(amount) < 0) {
-            throw new BadRequestException(
-                    "Saldo insuficiente en la cuenta de inversión");
+        public InvestmentAccountService(
+                        InvestmentAccountRepository investmentAccountRepository,
+                        UserRepository userRepository) {
+                this.investmentAccountRepository = investmentAccountRepository;
+                this.userRepository = userRepository;
         }
 
-        account.setBalance(
-                money(
-                        account.getBalance()
-                                .subtract(amount)));
+        // ===================
+        // QUERIES
+        // ===================
 
-        investmentAccountRepository.save(account);
-    }
+        @Transactional(readOnly = true)
+        public List<InvestmentAccountResponse> findAll() {
+                return investmentAccountRepository
+                                .findAll()
+                                .stream()
+                                .map(InvestmentAccountMapper::toResponse)
+                                .toList();
+        }
 
-    // ===================
-    // INTERNAL
-    // ===================
+        @Transactional(readOnly = true)
+        public InvestmentAccountResponse findById(
+                        Long investmentAccountId) {
+                return InvestmentAccountMapper.toResponse(
+                                getEntity(investmentAccountId));
+        }
 
-    public InvestmentAccount getEntity(
-            Long investmentAccountId) {
+        // ===================
+        // CRUD
+        // ===================
 
-        return investmentAccountRepository
-                .findById(investmentAccountId)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException(
-                                "Cuenta de inversión no encontrada"));
-    }
+        public InvestmentAccountResponse create(
+                        CreateInvestmentAccountRequest request) {
 
-    private User getUser(
-            Long userId) {
+                User user = getUser(request.userId());
 
-        return userRepository
-                .findById(userId)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException(
-                                "Usuario no encontrado"));
-    }
+                InvestmentAccount account = InvestmentAccountMapper.toEntity(
+                                request,
+                                user);
 
-    private BigDecimal money(
-            BigDecimal value) {
-        return value.setScale(
-                2,
-                RoundingMode.HALF_UP);
-    }
+                InvestmentAccount savedAccount = investmentAccountRepository.save(account);
+
+                return InvestmentAccountMapper.toResponse(
+                                savedAccount);
+        }
+
+        public InvestmentAccountResponse update(
+                        Long investmentAccountId,
+                        UpdateInvestmentAccountRequest request) {
+
+                InvestmentAccount account = getEntity(investmentAccountId);
+
+                InvestmentAccountMapper.updateEntity(
+                                account,
+                                request);
+
+                InvestmentAccount updatedAccount = investmentAccountRepository.save(account);
+
+                return InvestmentAccountMapper.toResponse(
+                                updatedAccount);
+        }
+
+        // ===================
+        // BALANCE
+        // ===================
+
+        public void increaseBalance(
+                        InvestmentAccount account,
+                        BigDecimal amount) {
+
+                account.setBalance(
+                                money(
+                                                account.getBalance()
+                                                                .add(amount)));
+
+                investmentAccountRepository.save(account);
+        }
+
+        public void withdraw(
+                        InvestmentAccount account,
+                        BigDecimal amount) {
+
+                if (account.getBalance().compareTo(amount) < 0) {
+                        throw new BadRequestException(
+                                        "Saldo insuficiente en la cuenta de inversión");
+                }
+
+                account.setBalance(
+                                money(
+                                                account.getBalance()
+                                                                .subtract(amount)));
+
+                investmentAccountRepository.save(account);
+        }
+
+        // ===================
+        // INTERNAL
+        // ===================
+
+        public InvestmentAccount getEntity(
+                        Long investmentAccountId) {
+
+                return investmentAccountRepository
+                                .findById(investmentAccountId)
+                                .orElseThrow(
+                                                () -> new ResourceNotFoundException(
+                                                                "Cuenta de inversión no encontrada"));
+        }
+
+        private User getUser(
+                        Long userId) {
+
+                return userRepository
+                                .findById(userId)
+                                .orElseThrow(
+                                                () -> new ResourceNotFoundException(
+                                                                "Usuario no encontrado"));
+        }
+
+        private BigDecimal money(
+                        BigDecimal value) {
+                return value.setScale(
+                                2,
+                                RoundingMode.HALF_UP);
+        }
 }

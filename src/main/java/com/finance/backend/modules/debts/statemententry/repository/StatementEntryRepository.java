@@ -5,6 +5,7 @@ import com.finance.backend.modules.debts.statemententry.model.StatementEntrySour
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface StatementEntryRepository
                 extends JpaRepository<StatementEntry, Long> {
@@ -26,4 +27,24 @@ public interface StatementEntryRepository
         List<StatementEntry> findByStatementCardCardIdAndSource(
                         Long cardId,
                         StatementEntrySource source);
+
+        Optional<StatementEntry> findByEntryIdAndStatementCardUserEmailIgnoreCase(
+                        Long entryId,
+                        String email);
+
+        List<StatementEntry> findByStatementStatementIdAndStatementCardUserEmailIgnoreCase(
+                        Long statementId,
+                        String email);
+
+        List<StatementEntry> findByDebtorAndStatementCardUserEmailIgnoreCase(
+                        String debtor,
+                        String email);
+
+        List<StatementEntry> findByStatementStatementIdAndDebtorAndStatementCardUserEmailIgnoreCase(
+                        Long statementId,
+                        String debtor,
+                        String email);
+
+        List<StatementEntry> findByStatementCardUserEmailIgnoreCase(
+                        String email);
 }

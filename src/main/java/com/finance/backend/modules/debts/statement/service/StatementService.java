@@ -11,6 +11,7 @@ import com.finance.backend.modules.debts.statement.model.Statement;
 import com.finance.backend.modules.debts.statement.model.StatementSource;
 import com.finance.backend.modules.debts.statement.model.StatementStatus;
 import com.finance.backend.modules.debts.statement.repository.StatementRepository;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -39,9 +40,12 @@ public class StatementService {
         }
 
         @Transactional(readOnly = true)
-        public List<StatementResponse> findAll() {
+        public List<StatementResponse> findAll(
+                        String email) {
+
                 return statementRepository
-                                .findAll()
+                                .findByCardUserEmailIgnoreCaseOrderByYearDescMonthDesc(
+                                                email)
                                 .stream()
                                 .map(StatementMapper::toResponse)
                                 .toList();
@@ -49,11 +53,17 @@ public class StatementService {
 
         @Transactional(readOnly = true)
         public List<StatementResponse> findByCardId(
-                        Long cardId) {
-                getCard(cardId);
+                        Long cardId,
+                        String email) {
+
+                getOwnedCard(
+                                cardId,
+                                email);
 
                 return statementRepository
-                                .findByCardCardIdOrderByYearDescMonthDesc(cardId)
+                                .findByCardCardIdAndCardUserEmailIgnoreCaseOrderByYearDescMonthDesc(
+                                                cardId,
+                                                email)
                                 .stream()
                                 .map(StatementMapper::toResponse)
                                 .toList();
@@ -61,16 +71,23 @@ public class StatementService {
 
         @Transactional(readOnly = true)
         public StatementResponse findById(
-                        Long statementId) {
+                        Long statementId,
+                        String email) {
+
                 return StatementMapper.toResponse(
-                                getStatement(statementId));
+                                getOwnedStatement(
+                                                statementId,
+                                                email));
         }
 
         @Transactional
         public StatementResponse create(
-                        CreateStatementRequest request) {
-                Card card = getCard(
-                                request.cardId());
+                        CreateStatementRequest request,
+                        String email) {
+
+                Card card = getOwnedCard(
+                                request.cardId(),
+                                email);
 
                 Optional<Statement> existingStatement = statementRepository
                                 .findByCardCardIdAndYearAndMonth(
@@ -79,9 +96,21 @@ public class StatementService {
                                                 request.month());
 
                 if (existingStatement.isPresent()) {
+
                         Statement statement = existingStatement.get();
 
+                        if (!statement
+                                        .getCard()
+                                        .getUser()
+                                        .getEmail()
+                                        .equalsIgnoreCase(email)) {
+
+                                throw new ResourceNotFoundException(
+                                                "Estado de cuenta no encontrado");
+                        }
+
                         if (statement.getSource() == StatementSource.ACTUAL) {
+
                                 throw new ResponseStatusException(
                                                 CONFLICT,
                                                 "Ya existe un estado de cuenta real para "
@@ -139,12 +168,16 @@ public class StatementService {
         @Transactional
         public StatementResponse update(
                         Long statementId,
-                        UpdateStatementRequest request) {
-                Statement statement = getStatement(
-                                statementId);
+                        UpdateStatementRequest request,
+                        String email) {
 
-                Card card = getCard(
-                                request.cardId());
+                Statement statement = getOwnedStatement(
+                                statementId,
+                                email);
+
+                Card card = getOwnedCard(
+                                request.cardId(),
+                                email);
 
                 StatementMapper.updateEntity(
                                 statement,
@@ -168,12 +201,14 @@ public class StatementService {
 
         public StatementResponse updatePaid(
                         Long statementId,
-                        Boolean paid) {
-                Statement statement = getStatement(
-                                statementId);
+                        Boolean paid,
+                        String email) {
 
-                statement.setPaid(
-                                paid);
+                Statement statement = getOwnedStatement(
+                                statementId,
+                                email);
+
+                statement.setPaid(paid);
 
                 Statement updatedStatement = statementRepository.save(
                                 statement);
@@ -184,25 +219,31 @@ public class StatementService {
 
         public List<StatementResponse> payAhead(
                         Long statementId,
-                        Integer months) {
-                Statement selectedStatement = getStatement(
-                                statementId);
+                        Integer months,
+                        String email) {
+
+                Statement selectedStatement = getOwnedStatement(
+                                statementId,
+                                email);
 
                 Long cardId = selectedStatement
                                 .getCard()
                                 .getCardId();
 
                 List<Statement> statements = statementRepository
-                                .findByCardCardIdOrderByYearAscMonthAsc(
-                                                cardId);
+                                .findByCardCardIdAndCardUserEmailIgnoreCaseOrderByYearAscMonthAsc(
+                                                cardId,
+                                                email);
 
                 int selectedIndex = -1;
 
                 for (int index = 0; index < statements.size(); index++) {
+
                         if (statements
                                         .get(index)
                                         .getStatementId()
                                         .equals(statementId)) {
+
                                 selectedIndex = index;
                                 break;
                         }
@@ -213,10 +254,10 @@ public class StatementService {
                                         "Estado de cuenta no encontrado");
                 }
 
-                int availableMonths = statements.size()
-                                - selectedIndex;
+                int availableMonths = statements.size() - selectedIndex;
 
                 if (months > availableMonths) {
+
                         throw new ResponseStatusException(
                                         BAD_REQUEST,
                                         "No existen suficientes periodos para adelantar "
@@ -229,14 +270,12 @@ public class StatementService {
 
                 for (int index = selectedIndex; index < selectedIndex + months; index++) {
 
-                        Statement statement = statements.get(
-                                        index);
+                        Statement statement = statements.get(index);
 
                         if (!Boolean.TRUE.equals(
                                         statement.getPaid())) {
 
-                                statement.setPaid(
-                                                true);
+                                statement.setPaid(true);
 
                                 statementsToUpdate.add(
                                                 statement);
@@ -258,22 +297,26 @@ public class StatementService {
         }
 
         public List<StatementResponse> payAll(
-                        Long cardId) {
-                getCard(
-                                cardId);
+                        Long cardId,
+                        String email) {
+
+                getOwnedCard(
+                                cardId,
+                                email);
 
                 List<Statement> statements = statementRepository
-                                .findByCardCardIdOrderByYearAscMonthAsc(
-                                                cardId);
+                                .findByCardCardIdAndCardUserEmailIgnoreCaseOrderByYearAscMonthAsc(
+                                                cardId,
+                                                email);
 
                 List<Statement> statementsToUpdate = new ArrayList<>();
 
                 for (Statement statement : statements) {
+
                         if (!Boolean.TRUE.equals(
                                         statement.getPaid())) {
 
-                                statement.setPaid(
-                                                true);
+                                statement.setPaid(true);
 
                                 statementsToUpdate.add(
                                                 statement);
@@ -407,9 +450,12 @@ public class StatementService {
         }
 
         public void delete(
-                        Long statementId) {
-                Statement statement = getStatement(
-                                statementId);
+                        Long statementId,
+                        String email) {
+
+                Statement statement = getOwnedStatement(
+                                statementId,
+                                email);
 
                 statementRepository.delete(
                                 statement);
@@ -512,19 +558,27 @@ public class StatementService {
                 return StatementStatus.CLOSED;
         }
 
-        private Statement getStatement(
-                        Long statementId) {
+        private Statement getOwnedStatement(
+                        Long statementId,
+                        String email) {
+
                 return statementRepository
-                                .findById(statementId)
+                                .findByStatementIdAndCardUserEmailIgnoreCase(
+                                                statementId,
+                                                email)
                                 .orElseThrow(
                                                 () -> new ResourceNotFoundException(
                                                                 "Estado de cuenta no encontrado"));
         }
 
-        private Card getCard(
-                        Long cardId) {
+        private Card getOwnedCard(
+                        Long cardId,
+                        String email) {
+
                 return cardRepository
-                                .findById(cardId)
+                                .findByCardIdAndUserEmailIgnoreCase(
+                                                cardId,
+                                                email)
                                 .orElseThrow(
                                                 () -> new ResourceNotFoundException(
                                                                 "Tarjeta no encontrada"));

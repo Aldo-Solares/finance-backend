@@ -9,50 +9,67 @@ import com.finance.backend.modules.user.model.User;
 
 public final class CardMapper {
 
-    private CardMapper() {
-    }
+        private CardMapper() {
+        }
 
-    public static Card toEntity(
-            CreateCardRequest request,
-            CardProduct product,
-            User user) {
-        Card card = new Card();
+        // ===================
+        // CREATE
+        // ===================
 
-        card.setCardCode(request.cardCode());
-        card.setProduct(product);
-        card.setUser(user);
+        public static Card toEntity(
+                        CreateCardRequest request,
+                        CardProduct product,
+                        User user) {
 
-        card.setActive(
-                request.active() != null
-                        ? request.active()
-                        : true);
+                Card card = new Card();
 
-        return card;
-    }
+                card.setCardCode(
+                                request.cardCode().trim());
 
-    public static void updateEntity(
-            Card card,
-            UpdateCardRequest request,
-            CardProduct product,
-            User user) {
-        card.setCardCode(request.cardCode());
-        card.setProduct(product);
-        card.setUser(user);
-        card.setActive(request.active());
-    }
+                card.setProduct(product);
+                card.setUser(user);
 
-    public static CardResponse toResponse(
-            Card card) {
-        return new CardResponse(
-                card.getCardId(),
-                card.getCardCode(),
-                card.getActive(),
+                card.setActive(
+                                request.active() != null
+                                                ? request.active()
+                                                : true);
 
-                card.getProduct().getProductId(),
-                card.getProduct().getBank(),
-                card.getProduct().getCardName(),
+                return card;
+        }
 
-                card.getUser().getUserId(),
-                card.getUser().getName());
-    }
+        // ===================
+        // UPDATE
+        // ===================
+
+        public static void updateEntity(
+                        Card card,
+                        UpdateCardRequest request,
+                        CardProduct product) {
+
+                card.setCardCode(
+                                request.cardCode().trim());
+
+                card.setProduct(product);
+                card.setActive(request.active());
+        }
+
+        // ===================
+        // RESPONSE
+        // ===================
+
+        public static CardResponse toResponse(
+                        Card card) {
+
+                return new CardResponse(
+                                card.getCardId(),
+                                card.getCardCode(),
+                                card.getActive(),
+
+                                card.getProduct().getProductId(),
+                                card.getProduct().getBank(),
+                                card.getProduct().getCardName(),
+
+                                card.getUser().getUserId(),
+                                card.getUser().getName());
+        }
 }

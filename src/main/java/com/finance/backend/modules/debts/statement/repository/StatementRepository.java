@@ -1,3 +1,5 @@
+// src/main/java/com/finance/backend/modules/debts/statement/repository/StatementRepository.java
+
 package com.finance.backend.modules.debts.statement.repository;
 
 import com.finance.backend.modules.debts.statement.model.Statement;
@@ -20,8 +22,18 @@ public interface StatementRepository
                         Integer year,
                         Integer month);
 
-        boolean existsByCardCardIdAndYearAndMonth(
+        List<Statement> findByCardUserEmailIgnoreCaseOrderByYearDescMonthDesc(
+                        String email);
+
+        Optional<Statement> findByStatementIdAndCardUserEmailIgnoreCase(
+                        Long statementId,
+                        String email);
+
+        List<Statement> findByCardCardIdAndCardUserEmailIgnoreCaseOrderByYearDescMonthDesc(
                         Long cardId,
-                        Integer year,
-                        Integer month);
+                        String email);
+
+        List<Statement> findByCardCardIdAndCardUserEmailIgnoreCaseOrderByYearAscMonthAsc(
+                        Long cardId,
+                        String email);
 }

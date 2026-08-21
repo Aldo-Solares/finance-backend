@@ -1,3 +1,5 @@
+// src/main/java/com/finance/backend/modules/debts/statement/controller/StatementController.java
+
 package com.finance.backend.modules.debts.statement.controller;
 
 import com.finance.backend.dto.ApiResponse;
@@ -7,9 +9,12 @@ import com.finance.backend.modules.debts.statement.dto.StatementResponse;
 import com.finance.backend.modules.debts.statement.dto.UpdateStatementPaidRequest;
 import com.finance.backend.modules.debts.statement.dto.UpdateStatementRequest;
 import com.finance.backend.modules.debts.statement.service.StatementService;
+
 import jakarta.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,33 +27,49 @@ public class StatementController {
 
         public StatementController(
                         StatementService statementService) {
+
                 this.statementService = statementService;
         }
 
         @GetMapping
-        public ApiResponse<List<StatementResponse>> findAll() {
+        public ApiResponse<List<StatementResponse>> findAll(
+                        Authentication authentication) {
+
                 return ApiResponse.success(
-                                statementService.findAll());
+                                statementService.findAll(
+                                                authentication.getName()));
         }
 
         @GetMapping("/{statementId}")
         public ApiResponse<StatementResponse> findById(
-                        @PathVariable Long statementId) {
+                        @PathVariable Long statementId,
+                        Authentication authentication) {
+
                 return ApiResponse.success(
-                                statementService.findById(statementId));
+                                statementService.findById(
+                                                statementId,
+                                                authentication.getName()));
         }
 
         @GetMapping("/card/{cardId}")
         public ApiResponse<List<StatementResponse>> findByCardId(
-                        @PathVariable Long cardId) {
+                        @PathVariable Long cardId,
+                        Authentication authentication) {
+
                 return ApiResponse.success(
-                                statementService.findByCardId(cardId));
+                                statementService.findByCardId(
+                                                cardId,
+                                                authentication.getName()));
         }
 
         @PostMapping
         public ResponseEntity<ApiResponse<StatementResponse>> create(
+                        Authentication authentication,
                         @Valid @RequestBody CreateStatementRequest request) {
-                StatementResponse statement = statementService.create(request);
+
+                StatementResponse statement = statementService.create(
+                                request,
+                                authentication.getName());
 
                 return ResponseEntity
                                 .status(HttpStatus.CREATED)
@@ -61,48 +82,65 @@ public class StatementController {
         @PutMapping("/{statementId}")
         public ApiResponse<StatementResponse> update(
                         @PathVariable Long statementId,
+                        Authentication authentication,
                         @Valid @RequestBody UpdateStatementRequest request) {
+
                 return ApiResponse.success(
                                 "Estado de cuenta actualizado",
                                 statementService.update(
                                                 statementId,
-                                                request));
+                                                request,
+                                                authentication.getName()));
         }
 
         @PatchMapping("/{statementId}/paid")
         public ApiResponse<StatementResponse> updatePaid(
                         @PathVariable Long statementId,
+                        Authentication authentication,
                         @Valid @RequestBody UpdateStatementPaidRequest request) {
+
                 return ApiResponse.success(
                                 "Estado de pago actualizado",
                                 statementService.updatePaid(
                                                 statementId,
-                                                request.paid()));
+                                                request.paid(),
+                                                authentication.getName()));
         }
 
         @PatchMapping("/{statementId}/pay-ahead")
         public ApiResponse<List<StatementResponse>> payAhead(
                         @PathVariable Long statementId,
+                        Authentication authentication,
                         @Valid @RequestBody PayAheadRequest request) {
+
                 return ApiResponse.success(
                                 "Periodos pagados correctamente",
                                 statementService.payAhead(
                                                 statementId,
-                                                request.months()));
+                                                request.months(),
+                                                authentication.getName()));
         }
 
         @PatchMapping("/card/{cardId}/pay-all")
         public ApiResponse<List<StatementResponse>> payAll(
-                        @PathVariable Long cardId) {
+                        @PathVariable Long cardId,
+                        Authentication authentication) {
+
                 return ApiResponse.success(
                                 "Todos los periodos fueron marcados como pagados",
-                                statementService.payAll(cardId));
+                                statementService.payAll(
+                                                cardId,
+                                                authentication.getName()));
         }
 
         @DeleteMapping("/{statementId}")
         public ApiResponse<Void> delete(
-                        @PathVariable Long statementId) {
-                statementService.delete(statementId);
+                        @PathVariable Long statementId,
+                        Authentication authentication) {
+
+                statementService.delete(
+                                statementId,
+                                authentication.getName());
 
                 return ApiResponse.success(
                                 "Estado de cuenta eliminado",

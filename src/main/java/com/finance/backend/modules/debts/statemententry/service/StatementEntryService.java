@@ -13,6 +13,7 @@ import com.finance.backend.modules.debts.statemententry.mapper.StatementEntryMap
 import com.finance.backend.modules.debts.statemententry.model.StatementEntry;
 import com.finance.backend.modules.debts.statemententry.model.StatementEntrySource;
 import com.finance.backend.modules.debts.statemententry.repository.StatementEntryRepository;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,9 +44,12 @@ public class StatementEntryService {
         }
 
         @Transactional(readOnly = true)
-        public List<StatementEntryResponse> findAll() {
+        public List<StatementEntryResponse> findAll(
+                        String email) {
+
                 return statementEntryRepository
-                                .findAll()
+                                .findByStatementCardUserEmailIgnoreCase(
+                                                email)
                                 .stream()
                                 .map(StatementEntryMapper::toResponse)
                                 .toList();
@@ -53,18 +57,28 @@ public class StatementEntryService {
 
         @Transactional(readOnly = true)
         public StatementEntryResponse findById(
-                        Long entryId) {
+                        Long entryId,
+                        String email) {
+
                 return StatementEntryMapper.toResponse(
-                                getEntry(entryId));
+                                getOwnedEntry(
+                                                entryId,
+                                                email));
         }
 
         @Transactional(readOnly = true)
         public List<StatementEntryResponse> findByStatementId(
-                        Long statementId) {
-                getStatement(statementId);
+                        Long statementId,
+                        String email) {
+
+                getOwnedStatement(
+                                statementId,
+                                email);
 
                 return statementEntryRepository
-                                .findByStatementStatementId(statementId)
+                                .findByStatementStatementIdAndStatementCardUserEmailIgnoreCase(
+                                                statementId,
+                                                email)
                                 .stream()
                                 .map(StatementEntryMapper::toResponse)
                                 .toList();
@@ -72,9 +86,13 @@ public class StatementEntryService {
 
         @Transactional(readOnly = true)
         public List<StatementEntryResponse> findByDebtor(
-                        String debtor) {
+                        String debtor,
+                        String email) {
+
                 return statementEntryRepository
-                                .findByDebtor(debtor)
+                                .findByDebtorAndStatementCardUserEmailIgnoreCase(
+                                                debtor,
+                                                email)
                                 .stream()
                                 .map(StatementEntryMapper::toResponse)
                                 .toList();
@@ -83,13 +101,18 @@ public class StatementEntryService {
         @Transactional(readOnly = true)
         public List<StatementEntryResponse> findByStatementIdAndDebtor(
                         Long statementId,
-                        String debtor) {
-                getStatement(statementId);
+                        String debtor,
+                        String email) {
+
+                getOwnedStatement(
+                                statementId,
+                                email);
 
                 return statementEntryRepository
-                                .findByStatementStatementIdAndDebtor(
+                                .findByStatementStatementIdAndDebtorAndStatementCardUserEmailIgnoreCase(
                                                 statementId,
-                                                debtor)
+                                                debtor,
+                                                email)
                                 .stream()
                                 .map(StatementEntryMapper::toResponse)
                                 .toList();
@@ -97,10 +120,12 @@ public class StatementEntryService {
 
         @Transactional
         public StatementEntryResponse create(
-                        CreateStatementEntryRequest request) {
+                        CreateStatementEntryRequest request,
+                        String email) {
 
-                Statement statement = getStatement(
-                                request.statementId());
+                Statement statement = getOwnedStatement(
+                                request.statementId(),
+                                email);
 
                 Concept concept = getConcept(
                                 request.conceptId());
@@ -111,11 +136,25 @@ public class StatementEntryService {
                                 concept);
 
                 if (entry == null) {
+
                         entry = StatementEntryMapper.toEntity(
                                         request,
                                         statement,
                                         concept);
+
                 } else {
+
+                        if (!entry
+                                        .getStatement()
+                                        .getCard()
+                                        .getUser()
+                                        .getEmail()
+                                        .equalsIgnoreCase(email)) {
+
+                                throw new ResourceNotFoundException(
+                                                "Movimiento no encontrado");
+                        }
+
                         StatementEntryMapper.updateEntity(
                                         entry,
                                         request,
@@ -136,13 +175,16 @@ public class StatementEntryService {
         @Transactional
         public StatementEntryResponse update(
                         Long entryId,
-                        UpdateStatementEntryRequest request) {
+                        UpdateStatementEntryRequest request,
+                        String email) {
 
-                StatementEntry entry = getEntry(
-                                entryId);
+                StatementEntry entry = getOwnedEntry(
+                                entryId,
+                                email);
 
-                Statement statement = getStatement(
-                                request.statementId());
+                Statement statement = getOwnedStatement(
+                                request.statementId(),
+                                email);
 
                 Concept concept = getConcept(
                                 request.conceptId());
@@ -157,6 +199,7 @@ public class StatementEntryService {
                                 entry);
 
                 if (updatedEntry.getSource() == StatementEntrySource.ACTUAL) {
+
                         rebuildMsiProjection(
                                         updatedEntry);
                 }
@@ -166,9 +209,12 @@ public class StatementEntryService {
         }
 
         public void delete(
-                        Long entryId) {
-                StatementEntry entry = getEntry(
-                                entryId);
+                        Long entryId,
+                        String email) {
+
+                StatementEntry entry = getOwnedEntry(
+                                entryId,
+                                email);
 
                 statementEntryRepository.delete(
                                 entry);
@@ -412,19 +458,27 @@ public class StatementEntryService {
                                                 remainingMonths));
         }
 
-        private StatementEntry getEntry(
-                        Long entryId) {
+        private StatementEntry getOwnedEntry(
+                        Long entryId,
+                        String email) {
+
                 return statementEntryRepository
-                                .findById(entryId)
+                                .findByEntryIdAndStatementCardUserEmailIgnoreCase(
+                                                entryId,
+                                                email)
                                 .orElseThrow(
                                                 () -> new ResourceNotFoundException(
                                                                 "Movimiento no encontrado"));
         }
 
-        private Statement getStatement(
-                        Long statementId) {
+        private Statement getOwnedStatement(
+                        Long statementId,
+                        String email) {
+
                 return statementRepository
-                                .findById(statementId)
+                                .findByStatementIdAndCardUserEmailIgnoreCase(
+                                                statementId,
+                                                email)
                                 .orElseThrow(
                                                 () -> new ResourceNotFoundException(
                                                                 "Estado de cuenta no encontrado"));

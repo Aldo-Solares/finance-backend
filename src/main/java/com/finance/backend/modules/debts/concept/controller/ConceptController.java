@@ -8,6 +8,7 @@ import com.finance.backend.modules.debts.concept.service.ConceptService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -37,8 +38,10 @@ public class ConceptController {
         }
 
         @PostMapping
+        @PreAuthorize("hasRole('ADMIN')")
         public ResponseEntity<ApiResponse<ConceptResponse>> create(
                         @Valid @RequestBody CreateConceptRequest request) {
+
                 ConceptResponse concept = conceptService.create(request);
 
                 return ResponseEntity
@@ -50,9 +53,11 @@ public class ConceptController {
         }
 
         @PutMapping("/{conceptId}")
+        @PreAuthorize("hasRole('ADMIN')")
         public ApiResponse<ConceptResponse> update(
                         @PathVariable Long conceptId,
                         @Valid @RequestBody UpdateConceptRequest request) {
+
                 return ApiResponse.success(
                                 "Concepto actualizado",
                                 conceptService.update(
@@ -61,12 +66,15 @@ public class ConceptController {
         }
 
         @DeleteMapping("/{conceptId}")
+        @PreAuthorize("hasRole('ADMIN')")
         public ApiResponse<Void> delete(
                         @PathVariable Long conceptId) {
+
                 conceptService.delete(conceptId);
 
                 return ApiResponse.success(
                                 "Concepto eliminado",
                                 null);
         }
+
 }

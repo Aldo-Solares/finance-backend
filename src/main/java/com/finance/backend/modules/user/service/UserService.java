@@ -6,11 +6,14 @@ import com.finance.backend.exception.UnauthorizedException;
 import com.finance.backend.modules.user.dto.user.ChangePasswordRequest;
 import com.finance.backend.modules.user.dto.user.ChangeRoleRequest;
 import com.finance.backend.modules.user.dto.user.UpdateUserRequest;
+import com.finance.backend.modules.user.dto.user.UpdateUserResponse;
 import com.finance.backend.modules.user.dto.user.UserResponse;
 import com.finance.backend.modules.user.mapper.UserMapper;
 import com.finance.backend.modules.user.model.User;
 import com.finance.backend.modules.user.repository.UserRepository;
+import com.finance.backend.security.JwtService;
 
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,15 +25,20 @@ public class UserService {
 
         private final UserRepository userRepository;
         private final PasswordEncoder passwordEncoder;
+        private final JwtService jwtService;
+        private final CustomUserDetailsService userDetailsService;
 
         public UserService(
                         UserRepository userRepository,
-                        PasswordEncoder passwordEncoder) {
+                        PasswordEncoder passwordEncoder,
+                        JwtService jwtService,
+                        CustomUserDetailsService userDetailsService) {
 
                 this.userRepository = userRepository;
                 this.passwordEncoder = passwordEncoder;
+                this.jwtService = jwtService;
+                this.userDetailsService = userDetailsService;
         }
-
         // ===================
         // CONSULTAS
         // ===================
@@ -68,7 +76,8 @@ public class UserService {
         // ACTUALIZACIÓN DE PERFIL
         // ===================
 
-        public UserResponse updateMe(
+        @Transactional
+        public UpdateUserResponse updateMe(
                         String email,
                         UpdateUserRequest request) {
 
@@ -106,7 +115,14 @@ public class UserService {
 
                 User savedUser = userRepository.save(currentUser);
 
-                return UserMapper.toResponse(savedUser);
+                UserDetails userDetails = userDetailsService.loadUserByUsername(
+                                savedUser.getEmail());
+
+                String token = jwtService.generateToken(userDetails);
+
+                return new UpdateUserResponse(
+                                UserMapper.toResponse(savedUser),
+                                token);
         }
 
         // ===================

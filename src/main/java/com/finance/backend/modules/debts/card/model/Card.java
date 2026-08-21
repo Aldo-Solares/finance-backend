@@ -5,7 +5,12 @@ import com.finance.backend.modules.user.model.User;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "cards")
+@Table(name = "cards", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_cards_user_card_code", columnNames = {
+                "user_id",
+                "card_code"
+        })
+})
 public class Card {
 
     @Id
@@ -13,7 +18,7 @@ public class Card {
     @Column(name = "card_id")
     private Long cardId;
 
-    @Column(name = "card_code", nullable = false, unique = true, length = 50)
+    @Column(name = "card_code", nullable = false, length = 50)
     private String cardCode;
 
     @ManyToOne(fetch = FetchType.LAZY)

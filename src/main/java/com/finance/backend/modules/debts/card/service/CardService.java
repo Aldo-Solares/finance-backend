@@ -28,34 +28,55 @@ public class CardService {
                         CardRepository cardRepository,
                         CardProductRepository cardProductRepository,
                         UserRepository userRepository) {
+
                 this.cardRepository = cardRepository;
                 this.cardProductRepository = cardProductRepository;
                 this.userRepository = userRepository;
         }
 
+        // ===================
+        // FIND ALL
+        // ===================
+
         @Transactional(readOnly = true)
-        public List<CardResponse> findAll() {
+        public List<CardResponse> findAll(
+                        String email) {
+
                 return cardRepository
-                                .findAll()
+                                .findByUserEmailIgnoreCaseOrderByCardIdAsc(email)
                                 .stream()
                                 .map(CardMapper::toResponse)
                                 .toList();
         }
 
+        // ===================
+        // FIND BY ID
+        // ===================
+
         @Transactional(readOnly = true)
         public CardResponse findById(
-                        Long cardId) {
+                        Long cardId,
+                        String email) {
+
                 return CardMapper.toResponse(
-                                getCard(cardId));
+                                getCard(
+                                                cardId,
+                                                email));
         }
 
+        // ===================
+        // CREATE
+        // ===================
+
         public CardResponse create(
-                        CreateCardRequest request) {
+                        CreateCardRequest request,
+                        String email) {
+
                 CardProduct product = getProduct(
                                 request.productId());
 
                 User user = getUser(
-                                request.userId());
+                                email);
 
                 Card card = CardMapper.toEntity(
                                 request,
@@ -69,23 +90,26 @@ public class CardService {
                                 savedCard);
         }
 
+        // ===================
+        // UPDATE
+        // ===================
+
         public CardResponse update(
                         Long cardId,
-                        UpdateCardRequest request) {
+                        UpdateCardRequest request,
+                        String email) {
+
                 Card card = getCard(
-                                cardId);
+                                cardId,
+                                email);
 
                 CardProduct product = getProduct(
                                 request.productId());
 
-                User user = getUser(
-                                request.userId());
-
                 CardMapper.updateEntity(
                                 card,
                                 request,
-                                product,
-                                user);
+                                product);
 
                 Card updatedCard = cardRepository.save(
                                 card);
@@ -94,26 +118,46 @@ public class CardService {
                                 updatedCard);
         }
 
+        // ===================
+        // DELETE
+        // ===================
+
         public void delete(
-                        Long cardId) {
+                        Long cardId,
+                        String email) {
+
                 Card card = getCard(
-                                cardId);
+                                cardId,
+                                email);
 
                 cardRepository.delete(
                                 card);
         }
 
+        // ===================
+        // CARD
+        // ===================
+
         private Card getCard(
-                        Long cardId) {
+                        Long cardId,
+                        String email) {
+
                 return cardRepository
-                                .findById(cardId)
+                                .findByCardIdAndUserEmailIgnoreCase(
+                                                cardId,
+                                                email)
                                 .orElseThrow(
                                                 () -> new ResourceNotFoundException(
                                                                 "Tarjeta no encontrada"));
         }
 
+        // ===================
+        // PRODUCT
+        // ===================
+
         private CardProduct getProduct(
                         Long productId) {
+
                 return cardProductRepository
                                 .findById(productId)
                                 .orElseThrow(
@@ -121,10 +165,15 @@ public class CardService {
                                                                 "Producto de tarjeta no encontrado"));
         }
 
+        // ===================
+        // USER
+        // ===================
+
         private User getUser(
-                        Long userId) {
+                        String email) {
+
                 return userRepository
-                                .findById(userId)
+                                .findByEmailIgnoreCase(email)
                                 .orElseThrow(
                                                 () -> new ResourceNotFoundException(
                                                                 "Usuario no encontrado"));

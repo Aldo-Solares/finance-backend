@@ -6,13 +6,11 @@ import jakarta.validation.constraints.Size;
 
 public record CreateCardRequest(
 
-                @NotBlank @Size(max = 50) String cardCode,
+        @NotBlank @Size(max = 50) String cardCode,
 
-                @NotNull Long productId,
+        @NotNull Long productId,
 
-                @NotNull Long userId,
-
-                Boolean active
+        Boolean active
 
 ) {
 }

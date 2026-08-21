@@ -17,85 +17,85 @@ import java.util.List;
 @Transactional
 public class InstrumentService {
 
-    private final InstrumentRepository instrumentRepository;
+        private final InstrumentRepository instrumentRepository;
 
-    public InstrumentService(
-            InstrumentRepository instrumentRepository) {
-        this.instrumentRepository = instrumentRepository;
-    }
-
-    @Transactional(readOnly = true)
-    public List<InstrumentResponse> findAll() {
-        return instrumentRepository
-                .findAll()
-                .stream()
-                .map(InstrumentMapper::toResponse)
-                .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public InstrumentResponse findById(
-            Long instrumentId) {
-
-        return InstrumentMapper.toResponse(
-                getEntity(instrumentId));
-    }
-
-    public InstrumentResponse create(
-            CreateInstrumentRequest request) {
-
-        if (instrumentRepository
-                .existsBySymbolIgnoreCase(
-                        request.symbol())) {
-            throw new ConflictException(
-                    "Ya existe un instrumento con ese símbolo");
+        public InstrumentService(
+                        InstrumentRepository instrumentRepository) {
+                this.instrumentRepository = instrumentRepository;
         }
 
-        Instrument instrument = InstrumentMapper.toEntity(request);
+        @Transactional(readOnly = true)
+        public List<InstrumentResponse> findAll() {
+                return instrumentRepository
+                                .findAll()
+                                .stream()
+                                .map(InstrumentMapper::toResponse)
+                                .toList();
+        }
 
-        Instrument savedInstrument = instrumentRepository.save(
-                instrument);
+        @Transactional(readOnly = true)
+        public InstrumentResponse findById(
+                        Long instrumentId) {
 
-        return InstrumentMapper.toResponse(
-                savedInstrument);
-    }
+                return InstrumentMapper.toResponse(
+                                getEntity(instrumentId));
+        }
 
-    public InstrumentResponse update(
-            Long instrumentId,
-            UpdateInstrumentRequest request) {
+        public InstrumentResponse create(
+                        CreateInstrumentRequest request) {
 
-        Instrument instrument = getEntity(instrumentId);
+                if (instrumentRepository
+                                .existsBySymbolIgnoreCase(
+                                                request.symbol())) {
+                        throw new ConflictException(
+                                        "Ya existe un instrumento con ese símbolo");
+                }
 
-        instrumentRepository
-                .findBySymbolIgnoreCase(
-                        request.symbol())
-                .filter(
-                        existing -> !existing.getInstrumentId()
-                                .equals(instrumentId))
-                .ifPresent(
-                        existing -> {
-                            throw new ConflictException(
-                                    "Ya existe un instrumento con ese símbolo");
-                        });
+                Instrument instrument = InstrumentMapper.toEntity(request);
 
-        InstrumentMapper.updateEntity(
-                instrument,
-                request);
+                Instrument savedInstrument = instrumentRepository.save(
+                                instrument);
 
-        Instrument updatedInstrument = instrumentRepository.save(
-                instrument);
+                return InstrumentMapper.toResponse(
+                                savedInstrument);
+        }
 
-        return InstrumentMapper.toResponse(
-                updatedInstrument);
-    }
+        public InstrumentResponse update(
+                        Long instrumentId,
+                        UpdateInstrumentRequest request) {
 
-    public Instrument getEntity(
-            Long instrumentId) {
+                Instrument instrument = getEntity(instrumentId);
 
-        return instrumentRepository
-                .findById(instrumentId)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException(
-                                "Instrumento no encontrado"));
-    }
+                instrumentRepository
+                                .findBySymbolIgnoreCase(
+                                                request.symbol())
+                                .filter(
+                                                existing -> !existing.getInstrumentId()
+                                                                .equals(instrumentId))
+                                .ifPresent(
+                                                existing -> {
+                                                        throw new ConflictException(
+                                                                        "Ya existe un instrumento con ese símbolo");
+                                                });
+
+                InstrumentMapper.updateEntity(
+                                instrument,
+                                request);
+
+                Instrument updatedInstrument = instrumentRepository.save(
+                                instrument);
+
+                return InstrumentMapper.toResponse(
+                                updatedInstrument);
+        }
+
+        public Instrument getEntity(
+                        Long instrumentId) {
+
+                return instrumentRepository
+                                .findById(instrumentId)
+                                .orElseThrow(
+                                                () -> new ResourceNotFoundException(
+                                                                "Instrumento no encontrado"));
+        }
 }

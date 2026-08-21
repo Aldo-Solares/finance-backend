@@ -4,6 +4,7 @@ import com.finance.backend.dto.ApiResponse;
 import com.finance.backend.modules.user.dto.user.ChangePasswordRequest;
 import com.finance.backend.modules.user.dto.user.ChangeRoleRequest;
 import com.finance.backend.modules.user.dto.user.UpdateUserRequest;
+import com.finance.backend.modules.user.dto.user.UpdateUserResponse;
 import com.finance.backend.modules.user.dto.user.UserResponse;
 import com.finance.backend.modules.user.service.UserService;
 
@@ -38,7 +39,7 @@ public class UserController {
         }
 
         @PutMapping("/me")
-        public ApiResponse<UserResponse> updateMe(
+        public ApiResponse<UpdateUserResponse> updateMe(
                         Authentication authentication,
                         @Valid @RequestBody UpdateUserRequest request) {
 

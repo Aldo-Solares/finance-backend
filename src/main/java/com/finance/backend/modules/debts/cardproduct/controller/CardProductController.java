@@ -9,7 +9,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.security.access.prepost.PreAuthorize;
 import java.util.List;
 
 @RestController
@@ -37,6 +37,7 @@ public class CardProductController {
         }
 
         @PostMapping
+        @PreAuthorize("hasRole('ADMIN')")
         public ResponseEntity<ApiResponse<CardProductResponse>> create(
                         @Valid @RequestBody CreateCardProductRequest request) {
                 CardProductResponse product = cardProductService.create(request);
@@ -50,9 +51,11 @@ public class CardProductController {
         }
 
         @PutMapping("/{productId}")
+        @PreAuthorize("hasRole('ADMIN')")
         public ApiResponse<CardProductResponse> update(
                         @PathVariable Long productId,
                         @Valid @RequestBody UpdateCardProductRequest request) {
+
                 return ApiResponse.success(
                                 "Producto de tarjeta actualizado",
                                 cardProductService.update(
@@ -61,8 +64,10 @@ public class CardProductController {
         }
 
         @DeleteMapping("/{productId}")
+        @PreAuthorize("hasRole('ADMIN')")
         public ApiResponse<Void> delete(
                         @PathVariable Long productId) {
+
                 cardProductService.delete(productId);
 
                 return ApiResponse.success(

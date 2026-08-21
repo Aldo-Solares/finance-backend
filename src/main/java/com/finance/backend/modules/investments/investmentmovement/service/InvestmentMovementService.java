@@ -18,89 +18,89 @@ import java.util.List;
 @Transactional
 public class InvestmentMovementService {
 
-    private final InvestmentMovementRepository investmentMovementRepository;
-    private final InvestmentAccountService investmentAccountService;
+        private final InvestmentMovementRepository investmentMovementRepository;
+        private final InvestmentAccountService investmentAccountService;
 
-    public InvestmentMovementService(
-            InvestmentMovementRepository investmentMovementRepository,
-            InvestmentAccountService investmentAccountService) {
-        this.investmentMovementRepository = investmentMovementRepository;
-        this.investmentAccountService = investmentAccountService;
-    }
-
-    @Transactional(readOnly = true)
-    public List<InvestmentMovementResponse> findAll() {
-        return investmentMovementRepository
-                .findAllByOrderByDateAscInvestmentMovementIdAsc()
-                .stream()
-                .map(InvestmentMovementMapper::toResponse)
-                .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public InvestmentMovementResponse findById(
-            Long investmentMovementId) {
-
-        return InvestmentMovementMapper.toResponse(
-                getMovement(investmentMovementId));
-    }
-
-    @Transactional(readOnly = true)
-    public List<InvestmentMovementResponse> findByInvestmentAccountId(
-            Long investmentAccountId) {
-
-        investmentAccountService.getEntity(
-                investmentAccountId);
-
-        return investmentMovementRepository
-                .findByInvestmentAccountInvestmentAccountIdOrderByDateAscInvestmentMovementIdAsc(
-                        investmentAccountId)
-                .stream()
-                .map(InvestmentMovementMapper::toResponse)
-                .toList();
-    }
-
-    public InvestmentMovementResponse create(
-            CreateInvestmentMovementRequest request) {
-
-        InvestmentAccount account = investmentAccountService.getEntity(
-                request.investmentAccountId());
-
-        switch (request.type()) {
-            case DEPOSIT, YIELD ->
-                investmentAccountService.increaseBalance(
-                        account,
-                        request.amount());
-
-            case WITHDRAWAL ->
-                investmentAccountService.withdraw(
-                        account,
-                        request.amount());
+        public InvestmentMovementService(
+                        InvestmentMovementRepository investmentMovementRepository,
+                        InvestmentAccountService investmentAccountService) {
+                this.investmentMovementRepository = investmentMovementRepository;
+                this.investmentAccountService = investmentAccountService;
         }
 
-        LocalDate date = request.date() != null
-                ? request.date()
-                : LocalDate.now();
+        @Transactional(readOnly = true)
+        public List<InvestmentMovementResponse> findAll() {
+                return investmentMovementRepository
+                                .findAllByOrderByDateAscInvestmentMovementIdAsc()
+                                .stream()
+                                .map(InvestmentMovementMapper::toResponse)
+                                .toList();
+        }
 
-        InvestmentMovement movement = InvestmentMovementMapper.toEntity(
-                request,
-                account,
-                date);
+        @Transactional(readOnly = true)
+        public InvestmentMovementResponse findById(
+                        Long investmentMovementId) {
 
-        InvestmentMovement savedMovement = investmentMovementRepository.save(
-                movement);
+                return InvestmentMovementMapper.toResponse(
+                                getMovement(investmentMovementId));
+        }
 
-        return InvestmentMovementMapper.toResponse(
-                savedMovement);
-    }
+        @Transactional(readOnly = true)
+        public List<InvestmentMovementResponse> findByInvestmentAccountId(
+                        Long investmentAccountId) {
 
-    private InvestmentMovement getMovement(
-            Long investmentMovementId) {
+                investmentAccountService.getEntity(
+                                investmentAccountId);
 
-        return investmentMovementRepository
-                .findById(investmentMovementId)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException(
-                                "Movimiento de inversión no encontrado"));
-    }
+                return investmentMovementRepository
+                                .findByInvestmentAccountInvestmentAccountIdOrderByDateAscInvestmentMovementIdAsc(
+                                                investmentAccountId)
+                                .stream()
+                                .map(InvestmentMovementMapper::toResponse)
+                                .toList();
+        }
+
+        public InvestmentMovementResponse create(
+                        CreateInvestmentMovementRequest request) {
+
+                InvestmentAccount account = investmentAccountService.getEntity(
+                                request.investmentAccountId());
+
+                switch (request.type()) {
+                        case DEPOSIT, YIELD ->
+                                investmentAccountService.increaseBalance(
+                                                account,
+                                                request.amount());
+
+                        case WITHDRAWAL ->
+                                investmentAccountService.withdraw(
+                                                account,
+                                                request.amount());
+                }
+
+                LocalDate date = request.date() != null
+                                ? request.date()
+                                : LocalDate.now();
+
+                InvestmentMovement movement = InvestmentMovementMapper.toEntity(
+                                request,
+                                account,
+                                date);
+
+                InvestmentMovement savedMovement = investmentMovementRepository.save(
+                                movement);
+
+                return InvestmentMovementMapper.toResponse(
+                                savedMovement);
+        }
+
+        private InvestmentMovement getMovement(
+                        Long investmentMovementId) {
+
+                return investmentMovementRepository
+                                .findById(investmentMovementId)
+                                .orElseThrow(
+                                                () -> new ResourceNotFoundException(
+                                                                "Movimiento de inversión no encontrado"));
+        }
 }
