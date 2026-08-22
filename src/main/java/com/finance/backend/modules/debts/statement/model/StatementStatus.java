@@ -4,5 +4,5 @@ public enum StatementStatus {
     UPCOMING,
     ACTIVE,
     PAYMENT_PENDING,
-    CLOSED
+    CLOSED,
 }

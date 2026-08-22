@@ -5,7 +5,6 @@ import com.finance.backend.modules.debts.statement.dto.CreateStatementRequest;
 import com.finance.backend.modules.debts.statement.dto.StatementResponse;
 import com.finance.backend.modules.debts.statement.dto.UpdateStatementRequest;
 import com.finance.backend.modules.debts.statement.model.Statement;
-import com.finance.backend.modules.debts.statement.model.StatementSource;
 
 public final class StatementMapper {
 
@@ -23,7 +22,6 @@ public final class StatementMapper {
         statement.setPeriodStart(request.periodStart());
         statement.setPeriodEnd(request.periodEnd());
         statement.setPaymentDate(request.paymentDate());
-        statement.setSource(StatementSource.ACTUAL);
 
         return statement;
     }
@@ -53,7 +51,6 @@ public final class StatementMapper {
                 statement.getPeriodEnd(),
                 statement.getPaymentDate(),
                 statement.getStatus(),
-                statement.getSource(),
                 statement.getPaid(),
                 statement.getNotes());
     }

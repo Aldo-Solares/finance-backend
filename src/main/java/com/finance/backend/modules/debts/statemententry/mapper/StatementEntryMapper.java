@@ -6,7 +6,6 @@ import com.finance.backend.modules.debts.statemententry.dto.CreateStatementEntry
 import com.finance.backend.modules.debts.statemententry.dto.StatementEntryResponse;
 import com.finance.backend.modules.debts.statemententry.dto.UpdateStatementEntryRequest;
 import com.finance.backend.modules.debts.statemententry.model.StatementEntry;
-import com.finance.backend.modules.debts.statemententry.model.StatementEntrySource;
 
 public final class StatementEntryMapper {
 
@@ -31,8 +30,6 @@ public final class StatementEntryMapper {
         entry.setPurchaseTotal(request.purchaseTotal());
         entry.setRemainingMonths(request.remainingMonths());
         entry.setRemainingTotal(request.remainingTotal());
-        entry.setSource(StatementEntrySource.ACTUAL);
-
         return entry;
     }
 
@@ -70,8 +67,7 @@ public final class StatementEntryMapper {
                 entry.getMsiTotal(),
                 entry.getPurchaseTotal(),
                 entry.getRemainingMonths(),
-                entry.getRemainingTotal(),
-                entry.getSource());
+                entry.getRemainingTotal());
     }
 
     public static void updateEntity(
@@ -92,6 +88,5 @@ public final class StatementEntryMapper {
         entry.setPurchaseTotal(request.purchaseTotal());
         entry.setRemainingMonths(request.remainingMonths());
         entry.setRemainingTotal(request.remainingTotal());
-        entry.setSource(StatementEntrySource.ACTUAL);
     }
 }

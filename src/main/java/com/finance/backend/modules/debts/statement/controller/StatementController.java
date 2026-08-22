@@ -4,9 +4,7 @@ package com.finance.backend.modules.debts.statement.controller;
 
 import com.finance.backend.dto.ApiResponse;
 import com.finance.backend.modules.debts.statement.dto.CreateStatementRequest;
-import com.finance.backend.modules.debts.statement.dto.PayAheadRequest;
 import com.finance.backend.modules.debts.statement.dto.StatementResponse;
-import com.finance.backend.modules.debts.statement.dto.UpdateStatementPaidRequest;
 import com.finance.backend.modules.debts.statement.dto.UpdateStatementRequest;
 import com.finance.backend.modules.debts.statement.service.StatementService;
 
@@ -90,34 +88,6 @@ public class StatementController {
                                 statementService.update(
                                                 statementId,
                                                 request,
-                                                authentication.getName()));
-        }
-
-        @PatchMapping("/{statementId}/paid")
-        public ApiResponse<StatementResponse> updatePaid(
-                        @PathVariable Long statementId,
-                        Authentication authentication,
-                        @Valid @RequestBody UpdateStatementPaidRequest request) {
-
-                return ApiResponse.success(
-                                "Estado de pago actualizado",
-                                statementService.updatePaid(
-                                                statementId,
-                                                request.paid(),
-                                                authentication.getName()));
-        }
-
-        @PatchMapping("/{statementId}/pay-ahead")
-        public ApiResponse<List<StatementResponse>> payAhead(
-                        @PathVariable Long statementId,
-                        Authentication authentication,
-                        @Valid @RequestBody PayAheadRequest request) {
-
-                return ApiResponse.success(
-                                "Periodos pagados correctamente",
-                                statementService.payAhead(
-                                                statementId,
-                                                request.months(),
                                                 authentication.getName()));
         }
 

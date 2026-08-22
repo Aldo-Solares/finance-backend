@@ -14,10 +14,7 @@ public interface StatementRepository
         List<Statement> findByCardCardIdOrderByYearDescMonthDesc(
                         Long cardId);
 
-        List<Statement> findByCardCardIdOrderByYearAscMonthAsc(
-                        Long cardId);
-
-        Optional<Statement> findByCardCardIdAndYearAndMonth(
+        boolean existsByCardCardIdAndYearAndMonth(
                         Long cardId,
                         Integer year,
                         Integer month);
@@ -30,10 +27,6 @@ public interface StatementRepository
                         String email);
 
         List<Statement> findByCardCardIdAndCardUserEmailIgnoreCaseOrderByYearDescMonthDesc(
-                        Long cardId,
-                        String email);
-
-        List<Statement> findByCardCardIdAndCardUserEmailIgnoreCaseOrderByYearAscMonthAsc(
                         Long cardId,
                         String email);
 }

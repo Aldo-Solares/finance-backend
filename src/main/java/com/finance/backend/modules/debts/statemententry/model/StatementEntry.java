@@ -53,10 +53,6 @@ public class StatementEntry {
     @Column(name = "remaining_total", precision = 14, scale = 2)
     private BigDecimal remainingTotal;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private StatementEntrySource source;
-
     public StatementEntry() {
     }
 
@@ -162,13 +158,5 @@ public class StatementEntry {
 
     public void setRemainingTotal(BigDecimal remainingTotal) {
         this.remainingTotal = remainingTotal;
-    }
-
-    public StatementEntrySource getSource() {
-        return source;
-    }
-
-    public void setSource(StatementEntrySource source) {
-        this.source = source;
     }
 }

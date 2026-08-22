@@ -43,10 +43,6 @@ public class Statement {
     @Column(nullable = false)
     private StatementStatus status;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private StatementSource source;
-
     @Column(nullable = false)
     private Boolean paid = false;
 
@@ -118,14 +114,6 @@ public class Statement {
 
     public void setStatus(StatementStatus status) {
         this.status = status;
-    }
-
-    public StatementSource getSource() {
-        return source;
-    }
-
-    public void setSource(StatementSource source) {
-        this.source = source;
     }
 
     public Boolean getPaid() {
