@@ -8,6 +8,7 @@ import com.finance.backend.modules.trading.tradingaccount.service.TradingAccount
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,51 +17,78 @@ import java.util.List;
 @RequestMapping("/api/trading-accounts")
 public class TradingAccountController {
 
-    private final TradingAccountService tradingAccountService;
+        private final TradingAccountService tradingAccountService;
 
-    public TradingAccountController(
-            TradingAccountService tradingAccountService) {
-        this.tradingAccountService = tradingAccountService;
-    }
+        public TradingAccountController(
+                        TradingAccountService tradingAccountService) {
 
-    @GetMapping
-    public ApiResponse<List<TradingAccountResponse>> findAll() {
-        return ApiResponse.success(
-                tradingAccountService.findAll());
-    }
+                this.tradingAccountService = tradingAccountService;
+        }
 
-    @GetMapping("/{tradingAccountId}")
-    public ApiResponse<TradingAccountResponse> findById(
-            @PathVariable Long tradingAccountId) {
+        @GetMapping
+        public ResponseEntity<ApiResponse<List<TradingAccountResponse>>> findAll(
+                        Authentication authentication) {
 
-        return ApiResponse.success(
-                tradingAccountService.findById(
-                        tradingAccountId));
-    }
+                return ResponseEntity.ok(
+                                ApiResponse.success(
+                                                tradingAccountService.findAll(
+                                                                authentication.getName())));
+        }
 
-    @PostMapping
-    public ResponseEntity<ApiResponse<TradingAccountResponse>> create(
-            @Valid @RequestBody CreateTradingAccountRequest request) {
+        @GetMapping("/{tradingAccountId}")
+        public ResponseEntity<ApiResponse<TradingAccountResponse>> findById(
+                        @PathVariable Long tradingAccountId,
+                        Authentication authentication) {
 
-        TradingAccountResponse account = tradingAccountService.create(request);
+                return ResponseEntity.ok(
+                                ApiResponse.success(
+                                                tradingAccountService.findById(
+                                                                tradingAccountId,
+                                                                authentication.getName())));
+        }
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(
-                        ApiResponse.success(
-                                "Cuenta de trading creada",
-                                account));
-    }
+        @PostMapping
+        public ResponseEntity<ApiResponse<TradingAccountResponse>> create(
+                        @Valid @RequestBody CreateTradingAccountRequest request,
+                        Authentication authentication) {
 
-    @PutMapping("/{tradingAccountId}")
-    public ApiResponse<TradingAccountResponse> update(
-            @PathVariable Long tradingAccountId,
-            @Valid @RequestBody UpdateTradingAccountRequest request) {
+                return ResponseEntity
+                                .status(HttpStatus.CREATED)
+                                .body(
+                                                ApiResponse.success(
+                                                                "Cuenta de trading creada correctamente",
+                                                                tradingAccountService.create(
+                                                                                request,
+                                                                                authentication.getName())));
+        }
 
-        return ApiResponse.success(
-                "Cuenta de trading actualizada",
-                tradingAccountService.update(
-                        tradingAccountId,
-                        request));
-    }
+        @PutMapping("/{tradingAccountId}")
+        public ResponseEntity<ApiResponse<TradingAccountResponse>> update(
+                        @PathVariable Long tradingAccountId,
+                        @Valid @RequestBody UpdateTradingAccountRequest request,
+                        Authentication authentication) {
+
+                return ResponseEntity.ok(
+                                ApiResponse.success(
+                                                "Cuenta de trading actualizada correctamente",
+                                                tradingAccountService.update(
+                                                                tradingAccountId,
+                                                                request,
+                                                                authentication.getName())));
+        }
+
+        @DeleteMapping("/{tradingAccountId}")
+        public ResponseEntity<ApiResponse<Void>> delete(
+                        @PathVariable Long tradingAccountId,
+                        Authentication authentication) {
+
+                tradingAccountService.delete(
+                                tradingAccountId,
+                                authentication.getName());
+
+                return ResponseEntity.ok(
+                                ApiResponse.success(
+                                                "Cuenta de trading eliminada correctamente",
+                                                null));
+        }
 }

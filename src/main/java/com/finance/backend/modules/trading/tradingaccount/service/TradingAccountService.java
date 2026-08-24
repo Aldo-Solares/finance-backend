@@ -1,6 +1,5 @@
 package com.finance.backend.modules.trading.tradingaccount.service;
 
-import com.finance.backend.exception.BadRequestException;
 import com.finance.backend.exception.ResourceNotFoundException;
 import com.finance.backend.modules.trading.tradingaccount.dto.CreateTradingAccountRequest;
 import com.finance.backend.modules.trading.tradingaccount.dto.TradingAccountResponse;
@@ -13,8 +12,6 @@ import com.finance.backend.modules.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.List;
 
 @Service
@@ -27,7 +24,9 @@ public class TradingAccountService {
         public TradingAccountService(
                         TradingAccountRepository tradingAccountRepository,
                         UserRepository userRepository) {
+
                 this.tradingAccountRepository = tradingAccountRepository;
+
                 this.userRepository = userRepository;
         }
 
@@ -36,183 +35,117 @@ public class TradingAccountService {
         // ===================
 
         @Transactional(readOnly = true)
-        public List<TradingAccountResponse> findAll() {
+        public List<TradingAccountResponse> findAll(
+                        String email) {
+
                 return tradingAccountRepository
-                                .findAll()
+                                .findByUserEmailIgnoreCaseOrderByTradingAccountIdAsc(
+                                                email)
                                 .stream()
-                                .map(TradingAccountMapper::toResponse)
+                                .map(
+                                                TradingAccountMapper::toResponse)
                                 .toList();
         }
 
         @Transactional(readOnly = true)
         public TradingAccountResponse findById(
-                        Long tradingAccountId) {
+                        Long tradingAccountId,
+                        String email) {
 
                 return TradingAccountMapper.toResponse(
-                                getEntity(tradingAccountId));
+                                getEntity(
+                                                tradingAccountId,
+                                                email));
         }
 
         // ===================
-        // CRUD
+        // CREATE
         // ===================
 
         public TradingAccountResponse create(
-                        CreateTradingAccountRequest request) {
+                        CreateTradingAccountRequest request,
+                        String email) {
 
-                User user = getUser(request.userId());
-
-                TradingAccount account = TradingAccountMapper.toEntity(
-                                request,
-                                user);
-
-                TradingAccount savedAccount = tradingAccountRepository.save(account);
-
-                return TradingAccountMapper.toResponse(
-                                savedAccount);
-        }
-
-        public TradingAccountResponse update(
-                        Long tradingAccountId,
-                        UpdateTradingAccountRequest request) {
-
-                TradingAccount account = getEntity(tradingAccountId);
-
-                TradingAccountMapper.updateEntity(
-                                account,
-                                request);
-
-                TradingAccount updatedAccount = tradingAccountRepository.save(account);
-
-                return TradingAccountMapper.toResponse(
-                                updatedAccount);
-        }
-
-        // ===================
-        // CASH
-        // ===================
-
-        public void applyDeposit(
-                        TradingAccount account,
-                        BigDecimal amount) {
-
-                account.setAvailableAmount(
-                                money(
-                                                account.getAvailableAmount()
-                                                                .add(amount)));
-
-                recalculateBalance(account);
-        }
-
-        public void applyWithdrawal(
-                        TradingAccount account,
-                        BigDecimal amount) {
-
-                if (account.getAvailableAmount()
-                                .compareTo(amount) < 0) {
-                        throw new BadRequestException(
-                                        "Saldo disponible insuficiente");
-                }
-
-                account.setAvailableAmount(
-                                money(
-                                                account.getAvailableAmount()
-                                                                .subtract(amount)));
-
-                recalculateBalance(account);
-        }
-
-        // ===================
-        // TRADES
-        // ===================
-
-        public void applyBuy(
-                        TradingAccount account,
-                        BigDecimal totalCost) {
-
-                if (account.getAvailableAmount()
-                                .compareTo(totalCost) < 0) {
-                        throw new BadRequestException(
-                                        "Saldo disponible insuficiente para realizar la compra");
-                }
-
-                account.setAvailableAmount(
-                                money(
-                                                account.getAvailableAmount()
-                                                                .subtract(totalCost)));
-
-                account.setInvestedAmount(
-                                money(
-                                                account.getInvestedAmount()
-                                                                .add(totalCost)));
-
-                recalculateBalance(account);
-        }
-
-        public void applySell(
-                        TradingAccount account,
-                        BigDecimal costBasisToRelease,
-                        BigDecimal netProceeds) {
-
-                if (account.getInvestedAmount()
-                                .compareTo(costBasisToRelease) < 0) {
-                        throw new BadRequestException(
-                                        "El costo de la posición excede el monto invertido");
-                }
-
-                account.setInvestedAmount(
-                                money(
-                                                account.getInvestedAmount()
-                                                                .subtract(costBasisToRelease)));
-
-                account.setAvailableAmount(
-                                money(
-                                                account.getAvailableAmount()
-                                                                .add(netProceeds)));
-
-                recalculateBalance(account);
-        }
-
-        // ===================
-        // INTERNAL
-        // ===================
-
-        public TradingAccount getEntity(
-                        Long tradingAccountId) {
-
-                return tradingAccountRepository
-                                .findById(tradingAccountId)
-                                .orElseThrow(
-                                                () -> new ResourceNotFoundException(
-                                                                "Cuenta de trading no encontrada"));
-        }
-
-        private User getUser(
-                        Long userId) {
-
-                return userRepository
-                                .findById(userId)
+                User user = userRepository
+                                .findById(
+                                                request.userId())
                                 .orElseThrow(
                                                 () -> new ResourceNotFoundException(
                                                                 "Usuario no encontrado"));
+
+                if (!user.getEmail()
+                                .equalsIgnoreCase(email)) {
+
+                        throw new ResourceNotFoundException(
+                                        "Usuario no encontrado");
+                }
+
+                TradingAccount tradingAccount = TradingAccountMapper.toEntity(
+                                request,
+                                user);
+
+                TradingAccount savedTradingAccount = tradingAccountRepository.save(
+                                tradingAccount);
+
+                return TradingAccountMapper.toResponse(
+                                savedTradingAccount);
         }
 
-        private void recalculateBalance(
-                        TradingAccount account) {
+        // ===================
+        // UPDATE
+        // ===================
 
-                account.setBalance(
-                                money(
-                                                account.getAvailableAmount()
-                                                                .add(
-                                                                                account.getInvestedAmount())));
+        public TradingAccountResponse update(
+                        Long tradingAccountId,
+                        UpdateTradingAccountRequest request,
+                        String email) {
 
-                tradingAccountRepository.save(account);
+                TradingAccount tradingAccount = getEntity(
+                                tradingAccountId,
+                                email);
+
+                TradingAccountMapper.updateEntity(
+                                tradingAccount,
+                                request);
+
+                TradingAccount savedTradingAccount = tradingAccountRepository.save(
+                                tradingAccount);
+
+                return TradingAccountMapper.toResponse(
+                                savedTradingAccount);
         }
 
-        private BigDecimal money(
-                        BigDecimal value) {
+        // ===================
+        // DELETE
+        // ===================
 
-                return value.setScale(
-                                2,
-                                RoundingMode.HALF_UP);
+        public void delete(
+                        Long tradingAccountId,
+                        String email) {
+
+                TradingAccount tradingAccount = getEntity(
+                                tradingAccountId,
+                                email);
+
+                tradingAccountRepository.delete(
+                                tradingAccount);
+        }
+
+        // ===================
+        // ENTITY
+        // ===================
+
+        @Transactional(readOnly = true)
+        public TradingAccount getEntity(
+                        Long tradingAccountId,
+                        String email) {
+
+                return tradingAccountRepository
+                                .findByTradingAccountIdAndUserEmailIgnoreCase(
+                                                tradingAccountId,
+                                                email)
+                                .orElseThrow(
+                                                () -> new ResourceNotFoundException(
+                                                                "Cuenta de trading no encontrada"));
         }
 }

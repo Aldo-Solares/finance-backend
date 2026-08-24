@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public record CreateTradeRequest(
+public record UpdateTradeRequest(
 
         @NotNull Long tradingAccountId,
 
@@ -23,7 +23,7 @@ public record CreateTradeRequest(
 
         @NotNull @DecimalMin(value = "0.00") BigDecimal commissionRate,
 
-        LocalDate date
+        @NotNull LocalDate date
 
 ) {
 }

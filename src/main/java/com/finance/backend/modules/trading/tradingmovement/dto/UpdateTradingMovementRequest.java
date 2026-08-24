@@ -8,17 +8,17 @@ import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public record CreateTradingMovementRequest(
+public record UpdateTradingMovementRequest(
 
-                @NotNull Long tradingAccountId,
+        @NotNull Long tradingAccountId,
 
-                @NotNull TradingMovementType type,
+        @NotNull TradingMovementType type,
 
-                @NotNull @DecimalMin(value = "0.01") BigDecimal amount,
+        @NotNull @DecimalMin(value = "0.01") BigDecimal amount,
 
-                @NotNull LocalDate date,
+        @NotNull LocalDate date,
 
-                @Size(max = 1000) String notes
+        @Size(max = 1000) String notes
 
 ) {
 }

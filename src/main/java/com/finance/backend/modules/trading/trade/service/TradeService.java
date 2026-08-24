@@ -6,25 +6,21 @@ import com.finance.backend.modules.trading.instrument.model.Instrument;
 import com.finance.backend.modules.trading.instrument.service.InstrumentService;
 import com.finance.backend.modules.trading.trade.dto.CreateTradeRequest;
 import com.finance.backend.modules.trading.trade.dto.TradeResponse;
+import com.finance.backend.modules.trading.trade.dto.UpdateTradeRequest;
 import com.finance.backend.modules.trading.trade.mapper.TradeMapper;
 import com.finance.backend.modules.trading.trade.model.Trade;
-import com.finance.backend.modules.trading.trade.model.TradeSide;
 import com.finance.backend.modules.trading.trade.repository.TradeRepository;
 import com.finance.backend.modules.trading.tradingaccount.model.TradingAccount;
 import com.finance.backend.modules.trading.tradingaccount.service.TradingAccountService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 
 @Service
 @Transactional
 public class TradeService {
-
-        private static final BigDecimal COMMISSION_RATE = new BigDecimal("0.0025");
 
         private final TradeRepository tradeRepository;
         private final TradingAccountService tradingAccountService;
@@ -34,44 +30,66 @@ public class TradeService {
                         TradeRepository tradeRepository,
                         TradingAccountService tradingAccountService,
                         InstrumentService instrumentService) {
+
                 this.tradeRepository = tradeRepository;
+
                 this.tradingAccountService = tradingAccountService;
+
                 this.instrumentService = instrumentService;
         }
 
         // ===================
-        // QUERIES
+        // FIND ALL
         // ===================
 
         @Transactional(readOnly = true)
-        public List<TradeResponse> findAll() {
+        public List<TradeResponse> findAll(
+                        String email) {
+
                 return tradeRepository
-                                .findAllByOrderByDateAscTradeIdAsc()
+                                .findByTradingAccountUserEmailIgnoreCaseOrderByDateAscTradeIdAsc(
+                                                email)
                                 .stream()
-                                .map(TradeMapper::toResponse)
+                                .map(
+                                                TradeMapper::toResponse)
                                 .toList();
         }
 
+        // ===================
+        // FIND BY ID
+        // ===================
+
         @Transactional(readOnly = true)
         public TradeResponse findById(
-                        Long tradeId) {
+                        Long tradeId,
+                        String email) {
 
                 return TradeMapper.toResponse(
-                                getTrade(tradeId));
+                                getEntity(
+                                                tradeId,
+                                                email));
         }
+
+        // ===================
+        // FIND BY ACCOUNT
+        // ===================
 
         @Transactional(readOnly = true)
         public List<TradeResponse> findByTradingAccountId(
-                        Long tradingAccountId) {
+                        Long tradingAccountId,
+                        String email) {
 
                 tradingAccountService.getEntity(
-                                tradingAccountId);
+                                tradingAccountId,
+                                email);
 
                 return tradeRepository
-                                .findByTradingAccountTradingAccountIdOrderByDateAscTradeIdAsc(
-                                                tradingAccountId)
+                                .findByTradingAccountTradingAccountIdAndTradingAccountUserEmailIgnoreCaseOrderByDateAscTradeIdAsc(
+                                                tradingAccountId,
+                                                email)
                                 .stream()
-                                .map(TradeMapper::toResponse)
+                                .map(
+                                                TradeMapper::toResponse)
                                 .toList();
         }
 
@@ -80,10 +98,12 @@ public class TradeService {
         // ===================
 
         public TradeResponse create(
-                        CreateTradeRequest request) {
+                        CreateTradeRequest request,
+                        String email) {
 
                 TradingAccount tradingAccount = tradingAccountService.getEntity(
-                                request.tradingAccountId());
+                                request.tradingAccountId(),
+                                email);
 
                 Instrument instrument = instrumentService.getEntity(
                                 request.instrumentId());
@@ -91,50 +111,6 @@ public class TradeService {
                 validateCurrency(
                                 tradingAccount,
                                 instrument);
-
-                BigDecimal grossAmount = calculateGrossAmount(
-                                request.quantity(),
-                                request.price());
-
-                BigDecimal commission = calculateCommission(
-                                grossAmount);
-
-                if (request.side() == TradeSide.BUY) {
-
-                        BigDecimal totalCost = money(
-                                        grossAmount.add(
-                                                        commission));
-
-                        tradingAccountService.applyBuy(
-                                        tradingAccount,
-                                        totalCost);
-
-                } else {
-
-                        PositionSnapshot position = calculatePosition(
-                                        tradingAccount.getTradingAccountId(),
-                                        instrument.getInstrumentId());
-
-                        if (position.quantity()
-                                        .compareTo(request.quantity()) < 0) {
-
-                                throw new BadRequestException(
-                                                "No hay títulos suficientes para realizar la venta");
-                        }
-
-                        BigDecimal costBasisToRelease = calculateCostBasisToRelease(
-                                        position,
-                                        request.quantity());
-
-                        BigDecimal netProceeds = money(
-                                        grossAmount.subtract(
-                                                        commission));
-
-                        tradingAccountService.applySell(
-                                        tradingAccount,
-                                        costBasisToRelease,
-                                        netProceeds);
-                }
 
                 LocalDate date = request.date() != null
                                 ? request.date()
@@ -144,7 +120,6 @@ public class TradeService {
                                 request,
                                 tradingAccount,
                                 instrument,
-                                commission,
                                 date);
 
                 Trade savedTrade = tradeRepository.save(
@@ -155,120 +130,56 @@ public class TradeService {
         }
 
         // ===================
-        // POSITION
+        // UPDATE
         // ===================
 
-        private PositionSnapshot calculatePosition(
-                        Long tradingAccountId,
-                        Long instrumentId) {
+        public TradeResponse update(
+                        Long tradeId,
+                        UpdateTradeRequest request,
+                        String email) {
 
-                List<Trade> trades = tradeRepository
-                                .findByTradingAccountTradingAccountIdAndInstrumentInstrumentIdOrderByDateAscTradeIdAsc(
-                                                tradingAccountId,
-                                                instrumentId);
+                Trade trade = getEntity(
+                                tradeId,
+                                email);
 
-                BigDecimal quantity = BigDecimal.ZERO;
+                TradingAccount tradingAccount = tradingAccountService.getEntity(
+                                request.tradingAccountId(),
+                                email);
 
-                BigDecimal costBasis = BigDecimal.ZERO;
+                Instrument instrument = instrumentService.getEntity(
+                                request.instrumentId());
 
-                for (Trade trade : trades) {
+                validateCurrency(
+                                tradingAccount,
+                                instrument);
 
-                        if (trade.getSide() == TradeSide.BUY) {
+                TradeMapper.updateEntity(
+                                trade,
+                                request,
+                                tradingAccount,
+                                instrument);
 
-                                BigDecimal grossAmount = calculateGrossAmount(
-                                                trade.getQuantity(),
-                                                trade.getPrice());
+                Trade savedTrade = tradeRepository.save(
+                                trade);
 
-                                BigDecimal totalCost = money(
-                                                grossAmount.add(
-                                                                trade.getCommission()));
-
-                                quantity = quantity.add(
-                                                trade.getQuantity());
-
-                                costBasis = money(
-                                                costBasis.add(
-                                                                totalCost));
-
-                                continue;
-                        }
-
-                        if (quantity.compareTo(
-                                        trade.getQuantity()) < 0) {
-                                throw new IllegalStateException(
-                                                "Historial de trades inconsistente");
-                        }
-
-                        BigDecimal releasedCostBasis = calculateCostBasisToRelease(
-                                        new PositionSnapshot(
-                                                        quantity,
-                                                        costBasis),
-                                        trade.getQuantity());
-
-                        quantity = quantity.subtract(
-                                        trade.getQuantity());
-
-                        costBasis = money(
-                                        costBasis.subtract(
-                                                        releasedCostBasis));
-                }
-
-                return new PositionSnapshot(
-                                quantity,
-                                costBasis);
-        }
-
-        private BigDecimal calculateCostBasisToRelease(
-                        PositionSnapshot position,
-                        BigDecimal quantityToSell) {
-
-                if (position.quantity()
-                                .compareTo(quantityToSell) == 0) {
-                        return position.costBasis();
-                }
-
-                BigDecimal averageCost = position.costBasis()
-                                .divide(
-                                                position.quantity(),
-                                                16,
-                                                RoundingMode.HALF_UP);
-
-                return money(
-                                averageCost.multiply(
-                                                quantityToSell));
+                return TradeMapper.toResponse(
+                                savedTrade);
         }
 
         // ===================
-        // CALCULATIONS
+        // DELETE
         // ===================
 
-        private BigDecimal calculateGrossAmount(
-                        BigDecimal quantity,
-                        BigDecimal price) {
+        public void delete(
+                        Long tradeId,
+                        String email) {
 
-                return quantity
-                                .multiply(price)
-                                .setScale(
-                                                2,
-                                                RoundingMode.HALF_UP);
-        }
+                Trade trade = getEntity(
+                                tradeId,
+                                email);
 
-        private BigDecimal calculateCommission(
-                        BigDecimal grossAmount) {
-
-                return grossAmount
-                                .multiply(COMMISSION_RATE)
-                                .setScale(
-                                                2,
-                                                RoundingMode.DOWN);
-        }
-
-        private BigDecimal money(
-                        BigDecimal value) {
-
-                return value.setScale(
-                                2,
-                                RoundingMode.HALF_UP);
+                tradeRepository.delete(
+                                trade);
         }
 
         // ===================
@@ -279,7 +190,8 @@ public class TradeService {
                         TradingAccount tradingAccount,
                         Instrument instrument) {
 
-                if (!tradingAccount.getCurrency()
+                if (!tradingAccount
+                                .getCurrency()
                                 .equalsIgnoreCase(
                                                 instrument.getCurrency())) {
 
@@ -289,21 +201,20 @@ public class TradeService {
         }
 
         // ===================
-        // INTERNAL
+        // ENTITY
         // ===================
 
-        private Trade getTrade(
-                        Long tradeId) {
+        @Transactional(readOnly = true)
+        public Trade getEntity(
+                        Long tradeId,
+                        String email) {
 
                 return tradeRepository
-                                .findById(tradeId)
+                                .findByTradeIdAndTradingAccountUserEmailIgnoreCase(
+                                                tradeId,
+                                                email)
                                 .orElseThrow(
                                                 () -> new ResourceNotFoundException(
                                                                 "Trade no encontrado"));
-        }
-
-        private record PositionSnapshot(
-                        BigDecimal quantity,
-                        BigDecimal costBasis) {
         }
 }

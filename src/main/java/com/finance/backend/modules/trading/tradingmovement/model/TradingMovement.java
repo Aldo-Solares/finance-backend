@@ -20,7 +20,7 @@ public class TradingMovement {
     private TradingAccount tradingAccount;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private TradingMovementType type;
 
     @Column(nullable = false, precision = 19, scale = 2)
@@ -39,7 +39,8 @@ public class TradingMovement {
         return tradingMovementId;
     }
 
-    public void setTradingMovementId(Long tradingMovementId) {
+    public void setTradingMovementId(
+            Long tradingMovementId) {
         this.tradingMovementId = tradingMovementId;
     }
 
@@ -56,7 +57,8 @@ public class TradingMovement {
         return type;
     }
 
-    public void setType(TradingMovementType type) {
+    public void setType(
+            TradingMovementType type) {
         this.type = type;
     }
 
@@ -64,7 +66,8 @@ public class TradingMovement {
         return amount;
     }
 
-    public void setAmount(BigDecimal amount) {
+    public void setAmount(
+            BigDecimal amount) {
         this.amount = amount;
     }
 
@@ -72,7 +75,8 @@ public class TradingMovement {
         return date;
     }
 
-    public void setDate(LocalDate date) {
+    public void setDate(
+            LocalDate date) {
         this.date = date;
     }
 
@@ -80,7 +84,8 @@ public class TradingMovement {
         return notes;
     }
 
-    public void setNotes(String notes) {
+    public void setNotes(
+            String notes) {
         this.notes = notes;
     }
 }

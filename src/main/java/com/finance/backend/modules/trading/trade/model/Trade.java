@@ -25,7 +25,7 @@ public class Trade {
     private Instrument instrument;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private TradeSide side;
 
     @Column(nullable = false, precision = 19, scale = 8)
@@ -34,8 +34,11 @@ public class Trade {
     @Column(nullable = false, precision = 19, scale = 8)
     private BigDecimal price;
 
-    @Column(nullable = false, precision = 19, scale = 2)
+    @Column(nullable = false, precision = 19, scale = 8)
     private BigDecimal commission;
+
+    @Column(name = "commission_rate", nullable = false, precision = 8, scale = 4)
+    private BigDecimal commissionRate;
 
     @Column(nullable = false)
     private LocalDate date;
@@ -73,7 +76,8 @@ public class Trade {
         return side;
     }
 
-    public void setSide(TradeSide side) {
+    public void setSide(
+            TradeSide side) {
         this.side = side;
     }
 
@@ -81,7 +85,8 @@ public class Trade {
         return quantity;
     }
 
-    public void setQuantity(BigDecimal quantity) {
+    public void setQuantity(
+            BigDecimal quantity) {
         this.quantity = quantity;
     }
 
@@ -89,7 +94,8 @@ public class Trade {
         return price;
     }
 
-    public void setPrice(BigDecimal price) {
+    public void setPrice(
+            BigDecimal price) {
         this.price = price;
     }
 
@@ -97,15 +103,26 @@ public class Trade {
         return commission;
     }
 
-    public void setCommission(BigDecimal commission) {
+    public void setCommission(
+            BigDecimal commission) {
         this.commission = commission;
+    }
+
+    public BigDecimal getCommissionRate() {
+        return commissionRate;
+    }
+
+    public void setCommissionRate(
+            BigDecimal commissionRate) {
+        this.commissionRate = commissionRate;
     }
 
     public LocalDate getDate() {
         return date;
     }
 
-    public void setDate(LocalDate date) {
+    public void setDate(
+            LocalDate date) {
         this.date = date;
     }
 }

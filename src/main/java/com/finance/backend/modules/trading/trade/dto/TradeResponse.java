@@ -6,12 +6,28 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record TradeResponse(
+
         Long tradeId,
+
         Long tradingAccountId,
+
         Long instrumentId,
+
         TradeSide side,
+
         BigDecimal quantity,
+
         BigDecimal price,
+
         BigDecimal commission,
-        LocalDate date) {
+
+        BigDecimal commissionRate,
+
+        BigDecimal expectedCommission,
+
+        Boolean commissionValid,
+
+        LocalDate date
+
+) {
 }

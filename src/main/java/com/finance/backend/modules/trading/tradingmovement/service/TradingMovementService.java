@@ -5,13 +5,13 @@ import com.finance.backend.modules.trading.tradingaccount.model.TradingAccount;
 import com.finance.backend.modules.trading.tradingaccount.service.TradingAccountService;
 import com.finance.backend.modules.trading.tradingmovement.dto.CreateTradingMovementRequest;
 import com.finance.backend.modules.trading.tradingmovement.dto.TradingMovementResponse;
+import com.finance.backend.modules.trading.tradingmovement.dto.UpdateTradingMovementRequest;
 import com.finance.backend.modules.trading.tradingmovement.mapper.TradingMovementMapper;
 import com.finance.backend.modules.trading.tradingmovement.model.TradingMovement;
 import com.finance.backend.modules.trading.tradingmovement.repository.TradingMovementRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -24,68 +24,82 @@ public class TradingMovementService {
         public TradingMovementService(
                         TradingMovementRepository tradingMovementRepository,
                         TradingAccountService tradingAccountService) {
+
                 this.tradingMovementRepository = tradingMovementRepository;
+
                 this.tradingAccountService = tradingAccountService;
         }
 
+        // ===================
+        // FIND ALL
+        // ===================
+
         @Transactional(readOnly = true)
-        public List<TradingMovementResponse> findAll() {
+        public List<TradingMovementResponse> findAll(
+                        String email) {
+
                 return tradingMovementRepository
-                                .findAllByOrderByDateAscTradingMovementIdAsc()
+                                .findByTradingAccountUserEmailIgnoreCaseOrderByDateAscTradingMovementIdAsc(
+                                                email)
                                 .stream()
-                                .map(TradingMovementMapper::toResponse)
+                                .map(
+                                                TradingMovementMapper::toResponse)
                                 .toList();
         }
+
+        // ===================
+        // FIND BY ID
+        // ===================
 
         @Transactional(readOnly = true)
         public TradingMovementResponse findById(
-                        Long tradingMovementId) {
+                        Long tradingMovementId,
+                        String email) {
 
                 return TradingMovementMapper.toResponse(
-                                getMovement(tradingMovementId));
+                                getEntity(
+                                                tradingMovementId,
+                                                email));
         }
+
+        // ===================
+        // FIND BY ACCOUNT
+        // ===================
 
         @Transactional(readOnly = true)
         public List<TradingMovementResponse> findByTradingAccountId(
-                        Long tradingAccountId) {
+                        Long tradingAccountId,
+                        String email) {
 
                 tradingAccountService.getEntity(
-                                tradingAccountId);
+                                tradingAccountId,
+                                email);
 
                 return tradingMovementRepository
-                                .findByTradingAccountTradingAccountIdOrderByDateAscTradingMovementIdAsc(
-                                                tradingAccountId)
+                                .findByTradingAccountTradingAccountIdAndTradingAccountUserEmailIgnoreCaseOrderByDateAscTradingMovementIdAsc(
+                                                tradingAccountId,
+                                                email)
                                 .stream()
-                                .map(TradingMovementMapper::toResponse)
+                                .map(
+                                                TradingMovementMapper::toResponse)
                                 .toList();
         }
 
+        // ===================
+        // CREATE
+        // ===================
+
         public TradingMovementResponse create(
-                        CreateTradingMovementRequest request) {
+                        CreateTradingMovementRequest request,
+                        String email) {
 
-                TradingAccount account = tradingAccountService.getEntity(
-                                request.tradingAccountId());
-
-                switch (request.type()) {
-                        case DEPOSIT ->
-                                tradingAccountService.applyDeposit(
-                                                account,
-                                                request.amount());
-
-                        case WITHDRAWAL ->
-                                tradingAccountService.applyWithdrawal(
-                                                account,
-                                                request.amount());
-                }
-
-                LocalDate date = request.date() != null
-                                ? request.date()
-                                : LocalDate.now();
+                TradingAccount tradingAccount = tradingAccountService.getEntity(
+                                request.tradingAccountId(),
+                                email);
 
                 TradingMovement movement = TradingMovementMapper.toEntity(
                                 request,
-                                account,
-                                date);
+                                tradingAccount);
 
                 TradingMovement savedMovement = tradingMovementRepository.save(
                                 movement);
@@ -94,11 +108,64 @@ public class TradingMovementService {
                                 savedMovement);
         }
 
-        private TradingMovement getMovement(
-                        Long tradingMovementId) {
+        // ===================
+        // UPDATE
+        // ===================
+
+        public TradingMovementResponse update(
+                        Long tradingMovementId,
+                        UpdateTradingMovementRequest request,
+                        String email) {
+
+                TradingMovement movement = getEntity(
+                                tradingMovementId,
+                                email);
+
+                TradingAccount tradingAccount = tradingAccountService.getEntity(
+                                request.tradingAccountId(),
+                                email);
+
+                TradingMovementMapper.updateEntity(
+                                movement,
+                                request,
+                                tradingAccount);
+
+                TradingMovement savedMovement = tradingMovementRepository.save(
+                                movement);
+
+                return TradingMovementMapper.toResponse(
+                                savedMovement);
+        }
+
+        // ===================
+        // DELETE
+        // ===================
+
+        public void delete(
+                        Long tradingMovementId,
+                        String email) {
+
+                TradingMovement movement = getEntity(
+                                tradingMovementId,
+                                email);
+
+                tradingMovementRepository.delete(
+                                movement);
+        }
+
+        // ===================
+        // ENTITY
+        // ===================
+
+        @Transactional(readOnly = true)
+        public TradingMovement getEntity(
+                        Long tradingMovementId,
+                        String email) {
 
                 return tradingMovementRepository
-                                .findById(tradingMovementId)
+                                .findByTradingMovementIdAndTradingAccountUserEmailIgnoreCase(
+                                                tradingMovementId,
+                                                email)
                                 .orElseThrow(
                                                 () -> new ResourceNotFoundException(
                                                                 "Movimiento de trading no encontrado"));

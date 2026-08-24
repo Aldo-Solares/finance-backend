@@ -6,8 +6,6 @@ import com.finance.backend.modules.trading.tradingaccount.dto.UpdateTradingAccou
 import com.finance.backend.modules.trading.tradingaccount.model.TradingAccount;
 import com.finance.backend.modules.user.model.User;
 
-import java.math.BigDecimal;
-
 public final class TradingAccountMapper {
 
     private TradingAccountMapper() {
@@ -17,36 +15,38 @@ public final class TradingAccountMapper {
             CreateTradingAccountRequest request,
             User user) {
 
-        TradingAccount account = new TradingAccount();
+        TradingAccount tradingAccount = new TradingAccount();
 
-        account.setUser(user);
-        account.setName(request.name());
-        account.setCurrency(request.currency());
-        account.setBalance(BigDecimal.ZERO);
-        account.setInvestedAmount(BigDecimal.ZERO);
-        account.setAvailableAmount(BigDecimal.ZERO);
+        tradingAccount.setUser(
+                user);
 
-        return account;
+        tradingAccount.setName(
+                request.name());
+
+        tradingAccount.setCurrency(
+                request.currency());
+
+        return tradingAccount;
     }
 
     public static void updateEntity(
-            TradingAccount account,
+            TradingAccount tradingAccount,
             UpdateTradingAccountRequest request) {
 
-        account.setName(request.name());
-        account.setCurrency(request.currency());
+        tradingAccount.setName(
+                request.name());
+
+        tradingAccount.setCurrency(
+                request.currency());
     }
 
     public static TradingAccountResponse toResponse(
-            TradingAccount account) {
+            TradingAccount tradingAccount) {
 
         return new TradingAccountResponse(
-                account.getTradingAccountId(),
-                account.getUser().getUserId(),
-                account.getName(),
-                account.getCurrency(),
-                account.getBalance(),
-                account.getInvestedAmount(),
-                account.getAvailableAmount());
+                tradingAccount.getTradingAccountId(),
+                tradingAccount.getUser().getUserId(),
+                tradingAccount.getName(),
+                tradingAccount.getCurrency());
     }
 }
