@@ -16,20 +16,23 @@ public final class StatementEntryMapper {
             CreateStatementEntryRequest request,
             Statement statement,
             Concept concept) {
+
         StatementEntry entry = new StatementEntry();
 
         entry.setStatement(statement);
         entry.setConcept(concept);
         entry.setDebtor(request.debtor());
         entry.setDescription(request.description());
-        entry.setPurchaseDate(request.purchaseDate());
-        entry.setInstallmentAmount(request.installmentAmount());
+        entry.setEntryType(request.entryType());
+        entry.setDate(request.date());
+        entry.setAmount(request.amount());
         entry.setPaid(request.paid());
         entry.setMsiCurrent(request.msiCurrent());
         entry.setMsiTotal(request.msiTotal());
-        entry.setPurchaseTotal(request.purchaseTotal());
-        entry.setRemainingMonths(request.remainingMonths());
-        entry.setRemainingTotal(request.remainingTotal());
+        entry.setPurchaseAmount(request.purchaseAmount());
+        entry.setRemainingMsi(request.remainingMsi());
+        entry.setRemainingMsiAmount(request.remainingMsiAmount());
+
         return entry;
     }
 
@@ -38,55 +41,40 @@ public final class StatementEntryMapper {
             UpdateStatementEntryRequest request,
             Statement statement,
             Concept concept) {
+
         entry.setStatement(statement);
         entry.setConcept(concept);
         entry.setDebtor(request.debtor());
         entry.setDescription(request.description());
-        entry.setPurchaseDate(request.purchaseDate());
-        entry.setInstallmentAmount(request.installmentAmount());
+        entry.setEntryType(request.entryType());
+        entry.setDate(request.date());
+        entry.setAmount(request.amount());
         entry.setPaid(request.paid());
         entry.setMsiCurrent(request.msiCurrent());
         entry.setMsiTotal(request.msiTotal());
-        entry.setPurchaseTotal(request.purchaseTotal());
-        entry.setRemainingMonths(request.remainingMonths());
-        entry.setRemainingTotal(request.remainingTotal());
+        entry.setPurchaseAmount(request.purchaseAmount());
+        entry.setRemainingMsi(request.remainingMsi());
+        entry.setRemainingMsiAmount(request.remainingMsiAmount());
     }
 
     public static StatementEntryResponse toResponse(
             StatementEntry entry) {
+
         return new StatementEntryResponse(
                 entry.getEntryId(),
                 entry.getStatement().getStatementId(),
                 entry.getConcept().getConceptId(),
+                entry.getConcept().getName(),
                 entry.getDebtor(),
                 entry.getDescription(),
-                entry.getPurchaseDate(),
-                entry.getInstallmentAmount(),
+                entry.getEntryType(),
+                entry.getDate(),
+                entry.getAmount(),
                 entry.getPaid(),
                 entry.getMsiCurrent(),
                 entry.getMsiTotal(),
-                entry.getPurchaseTotal(),
-                entry.getRemainingMonths(),
-                entry.getRemainingTotal());
-    }
-
-    public static void updateEntity(
-            StatementEntry entry,
-            CreateStatementEntryRequest request,
-            Statement statement,
-            Concept concept) {
-
-        entry.setStatement(statement);
-        entry.setConcept(concept);
-        entry.setDebtor(request.debtor());
-        entry.setDescription(request.description());
-        entry.setPurchaseDate(request.purchaseDate());
-        entry.setInstallmentAmount(request.installmentAmount());
-        entry.setPaid(request.paid());
-        entry.setMsiCurrent(request.msiCurrent());
-        entry.setMsiTotal(request.msiTotal());
-        entry.setPurchaseTotal(request.purchaseTotal());
-        entry.setRemainingMonths(request.remainingMonths());
-        entry.setRemainingTotal(request.remainingTotal());
+                entry.getPurchaseAmount(),
+                entry.getRemainingMsi(),
+                entry.getRemainingMsiAmount());
     }
 }

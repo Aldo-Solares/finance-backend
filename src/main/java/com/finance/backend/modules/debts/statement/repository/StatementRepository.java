@@ -1,5 +1,3 @@
-// src/main/java/com/finance/backend/modules/debts/statement/repository/StatementRepository.java
-
 package com.finance.backend.modules.debts.statement.repository;
 
 import com.finance.backend.modules.debts.statement.model.Statement;
@@ -11,22 +9,32 @@ import java.util.Optional;
 public interface StatementRepository
                 extends JpaRepository<Statement, Long> {
 
-        List<Statement> findByCardCardIdOrderByYearDescMonthDesc(
-                        Long cardId);
+        List<Statement> findByUserCardUserCardIdOrderByYearDescMonthDesc(
+                        Long userCardId);
 
-        boolean existsByCardCardIdAndYearAndMonth(
-                        Long cardId,
+        boolean existsByUserCardUserCardIdAndYearAndMonth(
+                        Long userCardId,
                         Integer year,
                         Integer month);
 
-        List<Statement> findByCardUserEmailIgnoreCaseOrderByYearDescMonthDesc(
+        List<Statement> findByUserCardUserEmailIgnoreCaseOrderByYearDescMonthDesc(
                         String email);
 
-        Optional<Statement> findByStatementIdAndCardUserEmailIgnoreCase(
+        Optional<Statement> findByStatementIdAndUserCardUserEmailIgnoreCase(
                         Long statementId,
                         String email);
 
-        List<Statement> findByCardCardIdAndCardUserEmailIgnoreCaseOrderByYearDescMonthDesc(
-                        Long cardId,
+        List<Statement> findByUserCardUserCardIdAndUserCardUserEmailIgnoreCaseOrderByYearDescMonthDesc(
+                        Long userCardId,
+                        String email);
+
+        Optional<Statement> findByUserCardUserCardIdAndYearAndMonthAndUserCardUserEmailIgnoreCase(
+                        Long userCardId,
+                        Integer year,
+                        Integer month,
+                        String email);
+
+        Optional<Statement> findFirstByUserCardUserCardIdAndUserCardUserEmailIgnoreCaseOrderByYearDescMonthDesc(
+                        Long userCardId,
                         String email);
 }

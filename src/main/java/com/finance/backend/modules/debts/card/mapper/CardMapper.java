@@ -4,72 +4,50 @@ import com.finance.backend.modules.debts.card.dto.CardResponse;
 import com.finance.backend.modules.debts.card.dto.CreateCardRequest;
 import com.finance.backend.modules.debts.card.dto.UpdateCardRequest;
 import com.finance.backend.modules.debts.card.model.Card;
-import com.finance.backend.modules.debts.cardproduct.model.CardProduct;
-import com.finance.backend.modules.user.model.User;
 
 public final class CardMapper {
 
         private CardMapper() {
         }
 
-        // ===================
-        // CREATE
-        // ===================
-
         public static Card toEntity(
-                        CreateCardRequest request,
-                        CardProduct product,
-                        User user) {
+                        CreateCardRequest request) {
 
                 Card card = new Card();
 
-                card.setCardCode(
-                                request.cardCode().trim());
+                card.setBank(
+                                request.bank().trim());
 
-                card.setProduct(product);
-                card.setUser(user);
+                card.setCardName(
+                                request.cardName().trim());
 
                 card.setActive(
-                                request.active() != null
-                                                ? request.active()
-                                                : true);
+                                request.active());
 
                 return card;
         }
 
-        // ===================
-        // UPDATE
-        // ===================
-
         public static void updateEntity(
                         Card card,
-                        UpdateCardRequest request,
-                        CardProduct product) {
+                        UpdateCardRequest request) {
 
-                card.setCardCode(
-                                request.cardCode().trim());
+                card.setBank(
+                                request.bank().trim());
 
-                card.setProduct(product);
-                card.setActive(request.active());
+                card.setCardName(
+                                request.cardName().trim());
+
+                card.setActive(
+                                request.active());
         }
-
-        // ===================
-        // RESPONSE
-        // ===================
 
         public static CardResponse toResponse(
                         Card card) {
 
                 return new CardResponse(
                                 card.getCardId(),
-                                card.getCardCode(),
-                                card.getActive(),
-
-                                card.getProduct().getProductId(),
-                                card.getProduct().getBank(),
-                                card.getProduct().getCardName(),
-
-                                card.getUser().getUserId(),
-                                card.getUser().getName());
+                                card.getBank(),
+                                card.getCardName(),
+                                card.getActive());
         }
 }

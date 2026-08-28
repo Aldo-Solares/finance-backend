@@ -6,8 +6,6 @@ import com.finance.backend.modules.trading.trade.dto.TradeResponse;
 import com.finance.backend.modules.trading.trade.dto.UpdateTradeRequest;
 import com.finance.backend.modules.trading.trade.service.TradeService;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,124 +15,75 @@ import java.util.List;
 @RequestMapping("/api/trades")
 public class TradeController {
 
-        private final TradeService tradeService;
+        private final TradeService service;
 
         public TradeController(
-                        TradeService tradeService) {
-
-                this.tradeService = tradeService;
+                        TradeService service) {
+                this.service = service;
         }
-
-        // ===================
-        // FIND ALL
-        // ===================
 
         @GetMapping
-        public ResponseEntity<ApiResponse<List<TradeResponse>>> findAll(
+        public ApiResponse<List<TradeResponse>> findAll(
                         Authentication authentication) {
-
-                List<TradeResponse> trades = tradeService.findAll(
-                                authentication.getName());
-
-                return ResponseEntity.ok(
-                                ApiResponse.success(
-                                                trades));
+                return ApiResponse.success(
+                                service.findAll(
+                                                authentication.getName()));
         }
-
-        // ===================
-        // FIND BY ID
-        // ===================
 
         @GetMapping("/{tradeId}")
-        public ResponseEntity<ApiResponse<TradeResponse>> findById(
+        public ApiResponse<TradeResponse> findById(
                         @PathVariable Long tradeId,
                         Authentication authentication) {
-
-                TradeResponse trade = tradeService.findById(
-                                tradeId,
-                                authentication.getName());
-
-                return ResponseEntity.ok(
-                                ApiResponse.success(
-                                                trade));
+                return ApiResponse.success(
+                                service.findById(
+                                                tradeId,
+                                                authentication.getName()));
         }
-
-        // ===================
-        // FIND BY ACCOUNT
-        // ===================
 
         @GetMapping("/account/{tradingAccountId}")
-        public ResponseEntity<ApiResponse<List<TradeResponse>>> findByTradingAccountId(
+        public ApiResponse<List<TradeResponse>> findByAccountId(
                         @PathVariable Long tradingAccountId,
                         Authentication authentication) {
-
-                List<TradeResponse> trades = tradeService.findByTradingAccountId(
-                                tradingAccountId,
-                                authentication.getName());
-
-                return ResponseEntity.ok(
-                                ApiResponse.success(
-                                                trades));
+                return ApiResponse.success(
+                                service.findByAccountId(
+                                                tradingAccountId,
+                                                authentication.getName()));
         }
-
-        // ===================
-        // CREATE
-        // ===================
 
         @PostMapping
-        public ResponseEntity<ApiResponse<TradeResponse>> create(
+        public ApiResponse<TradeResponse> create(
                         @Valid @RequestBody CreateTradeRequest request,
                         Authentication authentication) {
-
-                TradeResponse trade = tradeService.create(
-                                request,
-                                authentication.getName());
-
-                return ResponseEntity
-                                .status(HttpStatus.CREATED)
-                                .body(
-                                                ApiResponse.success(
-                                                                "Trade creado correctamente",
-                                                                trade));
+                return ApiResponse.success(
+                                "Trade created successfully",
+                                service.create(
+                                                request,
+                                                authentication.getName()));
         }
 
-        // ===================
-        // UPDATE
-        // ===================
-
         @PutMapping("/{tradeId}")
-        public ResponseEntity<ApiResponse<TradeResponse>> update(
+        public ApiResponse<TradeResponse> update(
                         @PathVariable Long tradeId,
                         @Valid @RequestBody UpdateTradeRequest request,
                         Authentication authentication) {
-
-                TradeResponse trade = tradeService.update(
-                                tradeId,
-                                request,
-                                authentication.getName());
-
-                return ResponseEntity.ok(
-                                ApiResponse.success(
-                                                "Trade actualizado correctamente",
-                                                trade));
+                return ApiResponse.success(
+                                "Trade updated successfully",
+                                service.update(
+                                                tradeId,
+                                                request,
+                                                authentication.getName()));
         }
 
-        // ===================
-        // DELETE
-        // ===================
-
         @DeleteMapping("/{tradeId}")
-        public ResponseEntity<ApiResponse<Void>> delete(
+        public ApiResponse<Void> delete(
                         @PathVariable Long tradeId,
                         Authentication authentication) {
-
-                tradeService.delete(
+                service.delete(
                                 tradeId,
                                 authentication.getName());
 
-                return ResponseEntity.ok(
-                                ApiResponse.success(
-                                                "Trade eliminado correctamente",
-                                                null));
+                return ApiResponse.success(
+                                "Trade deleted successfully",
+                                null);
         }
 }

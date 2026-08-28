@@ -7,7 +7,6 @@ import com.finance.backend.modules.debts.card.dto.UpdateCardRequest;
 import com.finance.backend.modules.debts.card.service.CardService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,6 +19,7 @@ public class CardController {
 
         public CardController(
                         CardService cardService) {
+
                 this.cardService = cardService;
         }
 
@@ -28,12 +28,21 @@ public class CardController {
         // ===================
 
         @GetMapping
-        public ApiResponse<List<CardResponse>> findAll(
-                        Authentication authentication) {
+        public ApiResponse<List<CardResponse>> findAll() {
 
                 return ApiResponse.success(
-                                cardService.findAll(
-                                                authentication.getName()));
+                                cardService.findAll());
+        }
+
+        // ===================
+        // FIND ACTIVE
+        // ===================
+
+        @GetMapping("/active")
+        public ApiResponse<List<CardResponse>> findAllActive() {
+
+                return ApiResponse.success(
+                                cardService.findAllActive());
         }
 
         // ===================
@@ -42,13 +51,11 @@ public class CardController {
 
         @GetMapping("/{cardId}")
         public ApiResponse<CardResponse> findById(
-                        @PathVariable Long cardId,
-                        Authentication authentication) {
+                        @PathVariable Long cardId) {
 
                 return ApiResponse.success(
                                 cardService.findById(
-                                                cardId,
-                                                authentication.getName()));
+                                                cardId));
         }
 
         // ===================
@@ -58,14 +65,12 @@ public class CardController {
         @PostMapping
         @ResponseStatus(HttpStatus.CREATED)
         public ApiResponse<CardResponse> create(
-                        @Valid @RequestBody CreateCardRequest request,
-                        Authentication authentication) {
+                        @Valid @RequestBody CreateCardRequest request) {
 
                 return ApiResponse.success(
                                 "Tarjeta creada",
                                 cardService.create(
-                                                request,
-                                                authentication.getName()));
+                                                request));
         }
 
         // ===================
@@ -75,15 +80,13 @@ public class CardController {
         @PutMapping("/{cardId}")
         public ApiResponse<CardResponse> update(
                         @PathVariable Long cardId,
-                        @Valid @RequestBody UpdateCardRequest request,
-                        Authentication authentication) {
+                        @Valid @RequestBody UpdateCardRequest request) {
 
                 return ApiResponse.success(
                                 "Tarjeta actualizada",
                                 cardService.update(
                                                 cardId,
-                                                request,
-                                                authentication.getName()));
+                                                request));
         }
 
         // ===================
@@ -92,18 +95,13 @@ public class CardController {
 
         @DeleteMapping("/{cardId}")
         public ApiResponse<Void> delete(
-                        @PathVariable Long cardId,
-                        Authentication authentication) {
+                        @PathVariable Long cardId) {
 
                 cardService.delete(
-                                cardId,
-                                authentication.getName());
+                                cardId);
 
                 return ApiResponse.success(
                                 "Tarjeta eliminada",
                                 null);
         }
-
 }
-
-        

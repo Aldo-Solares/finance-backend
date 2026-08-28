@@ -1,6 +1,5 @@
 package com.finance.backend.modules.trading.trade.dto;
 
-import com.finance.backend.modules.trading.trade.model.TradeSide;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 
@@ -9,21 +8,19 @@ import java.time.LocalDate;
 
 public record UpdateTradeRequest(
 
-        @NotNull Long tradingAccountId,
+                @NotNull Long tradingAccountId,
 
-        @NotNull Long instrumentId,
+                @NotNull Long instrumentId,
 
-        @NotNull TradeSide side,
+                @NotNull @DecimalMin("0.00000001") BigDecimal quantity,
 
-        @NotNull @DecimalMin(value = "0.00000001") BigDecimal quantity,
+                @NotNull @DecimalMin("0.00000001") BigDecimal purchasePrice,
 
-        @NotNull @DecimalMin(value = "0.00000001") BigDecimal price,
+                @NotNull @DecimalMin("0.0") BigDecimal purchaseCommission,
 
-        @NotNull @DecimalMin(value = "0.00") BigDecimal commission,
+                @NotNull @DecimalMin("0.0") BigDecimal purchaseCommissionRate,
 
-        @NotNull @DecimalMin(value = "0.00") BigDecimal commissionRate,
-
-        @NotNull LocalDate date
+                @NotNull LocalDate purchaseDate
 
 ) {
 }

@@ -7,12 +7,17 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CardRepository
-        extends JpaRepository<Card, Long> {
+                extends JpaRepository<Card, Long> {
 
-    List<Card> findByUserEmailIgnoreCaseOrderByCardIdAsc(
-            String email);
+        List<Card> findAllByOrderByBankAscCardNameAsc();
 
-    Optional<Card> findByCardIdAndUserEmailIgnoreCase(
-            Long cardId,
-            String email);
+        List<Card> findByActiveTrueOrderByBankAscCardNameAsc();
+
+        Optional<Card> findByBankIgnoreCaseAndCardNameIgnoreCase(
+                        String bank,
+                        String cardName);
+
+        boolean existsByBankIgnoreCaseAndCardNameIgnoreCase(
+                        String bank,
+                        String cardName);
 }

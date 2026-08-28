@@ -1,22 +1,18 @@
 package com.finance.backend.modules.debts.statement.dto;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
 
 public record CreateStatementRequest(
 
-                @NotNull Long cardId,
+                @NotNull Long userCardId,
 
-                @NotNull Integer year,
+                @NotNull LocalDate periodStart,
 
-                @NotNull @Min(1) @Max(12) Integer month,
+                @NotNull LocalDate periodEnd,
 
-                LocalDate periodStart,
+                @NotNull LocalDate paymentDate
 
-                LocalDate periodEnd,
-
-                LocalDate paymentDate) {
+) {
 }

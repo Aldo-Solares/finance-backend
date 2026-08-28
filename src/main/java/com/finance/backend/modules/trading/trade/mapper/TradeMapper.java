@@ -1,152 +1,87 @@
 package com.finance.backend.modules.trading.trade.mapper;
 
-import com.finance.backend.modules.trading.instrument.model.Instrument;
-import com.finance.backend.modules.trading.trade.dto.CreateTradeRequest;
 import com.finance.backend.modules.trading.trade.dto.TradeResponse;
-import com.finance.backend.modules.trading.trade.dto.UpdateTradeRequest;
 import com.finance.backend.modules.trading.trade.model.Trade;
-import com.finance.backend.modules.trading.tradingaccount.model.TradingAccount;
-
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.LocalDate;
+import com.finance.backend.modules.trading.trade.utils.TradeCalculation;
+import com.finance.backend.modules.trading.tradesale.mapper.TradeSaleMapper;
 
 public final class TradeMapper {
-
-        private static final BigDecimal ONE_HUNDRED = new BigDecimal("100");
-
-        private static final BigDecimal COMMISSION_TOLERANCE = new BigDecimal("0.01");
 
         private TradeMapper() {
         }
 
-        public static Trade toEntity(
-                        CreateTradeRequest request,
-                        TradingAccount tradingAccount,
-                        Instrument instrument,
-                        LocalDate date) {
-
-                Trade trade = new Trade();
-
-                trade.setTradingAccount(
-                                tradingAccount);
-
-                trade.setInstrument(
-                                instrument);
-
-                trade.setSide(
-                                request.side());
-
-                trade.setQuantity(
-                                request.quantity());
-
-                trade.setPrice(
-                                request.price());
-
-                trade.setCommission(
-                                request.commission());
-
-                trade.setCommissionRate(
-                                request.commissionRate());
-
-                trade.setDate(
-                                date);
-
-                return trade;
-        }
-
-        public static void updateEntity(
-                        Trade trade,
-                        UpdateTradeRequest request,
-                        TradingAccount tradingAccount,
-                        Instrument instrument) {
-
-                trade.setTradingAccount(
-                                tradingAccount);
-
-                trade.setInstrument(
-                                instrument);
-
-                trade.setSide(
-                                request.side());
-
-                trade.setQuantity(
-                                request.quantity());
-
-                trade.setPrice(
-                                request.price());
-
-                trade.setCommission(
-                                request.commission());
-
-                trade.setCommissionRate(
-                                request.commissionRate());
-
-                trade.setDate(
-                                request.date());
-        }
-
         public static TradeResponse toResponse(
                         Trade trade) {
-
-                BigDecimal expectedCommission = calculateExpectedCommission(
-                                trade);
-
-                boolean commissionValid = isCommissionValid(
-                                trade,
-                                expectedCommission);
+                var expectedPurchaseCommission = TradeCalculation.calculateExpectedCommission(
+                                trade.getQuantity(),
+                                trade.getPurchasePrice(),
+                                trade.getPurchaseCommissionRate());
 
                 return new TradeResponse(
                                 trade.getTradeId(),
-                                trade
-                                                .getTradingAccount()
+
+                                trade.getTradingAccount()
                                                 .getTradingAccountId(),
-                                trade
-                                                .getInstrument()
+
+                                trade.getTradingAccount()
+                                                .getName(),
+
+                                trade.getInstrument()
                                                 .getInstrumentId(),
-                                trade.getSide(),
+
+                                trade.getInstrument()
+                                                .getSymbol(),
+
+                                trade.getInstrument()
+                                                .getName(),
+
+                                trade.getTradingAccount()
+                                                .getCurrency(),
+
                                 trade.getQuantity(),
-                                trade.getPrice(),
-                                trade.getCommission(),
-                                trade.getCommissionRate(),
-                                expectedCommission,
-                                commissionValid,
-                                trade.getDate());
-        }
+                                trade.getPurchasePrice(),
+                                trade.getPurchaseCommission(),
+                                trade.getPurchaseCommissionRate(),
 
-        private static BigDecimal calculateExpectedCommission(
-                        Trade trade) {
+                                expectedPurchaseCommission,
 
-                BigDecimal grossAmount = trade.getQuantity()
-                                .multiply(
-                                                trade.getPrice())
-                                .setScale(
-                                                2,
-                                                RoundingMode.HALF_UP);
+                                TradeCalculation.isCommissionValid(
+                                                trade.getPurchaseCommission(),
+                                                expectedPurchaseCommission),
 
-                BigDecimal rate = trade.getCommissionRate()
-                                .divide(
-                                                ONE_HUNDRED,
-                                                10,
-                                                RoundingMode.HALF_UP);
+                                trade.getPurchaseDate(),
 
-                return grossAmount
-                                .multiply(rate)
-                                .setScale(
-                                                2,
-                                                RoundingMode.DOWN);
-        }
+                                TradeCalculation.getPurchaseGrossAmount(
+                                                trade),
 
-        private static boolean isCommissionValid(
-                        Trade trade,
-                        BigDecimal expectedCommission) {
+                                TradeCalculation.getPurchaseTotalCost(
+                                                trade),
 
-                BigDecimal difference = trade.getCommission()
-                                .subtract(
-                                                expectedCommission)
-                                .abs();
+                                TradeCalculation.getSoldQuantity(
+                                                trade),
 
-                return difference.compareTo(
-                                COMMISSION_TOLERANCE) <= 0;
+                                TradeCalculation.getRemainingQuantity(
+                                                trade),
+
+                                TradeCalculation.getRemainingCost(
+                                                trade),
+
+                                TradeCalculation.getTotalSaleAmount(
+                                                trade),
+
+                                TradeCalculation.getTotalSaleCommissions(
+                                                trade),
+
+                                TradeCalculation.getRealizedProfit(
+                                                trade),
+
+                                TradeCalculation.getStatus(
+                                                trade),
+
+                                trade.getSales()
+                                                .stream()
+                                                .map(
+                                                                TradeSaleMapper::toResponse)
+                                                .toList());
         }
 }

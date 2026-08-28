@@ -1,36 +1,40 @@
 package com.finance.backend.modules.debts.statemententry.dto;
 
+import com.finance.backend.modules.debts.statemententry.model.StatementEntryType;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record CreateStatementEntryRequest(
 
-        @NotNull Long statementId,
+                @NotNull Long statementId,
 
-        @NotNull Long conceptId,
+                @NotNull Long conceptId,
 
-        @NotNull String debtor,
+                @NotBlank String debtor,
 
-        String description,
+                String description,
 
-        LocalDate purchaseDate,
+                @NotNull StatementEntryType entryType,
 
-        @PositiveOrZero BigDecimal installmentAmount,
+                LocalDate date,
 
-        Boolean paid,
+                @NotNull @Positive BigDecimal amount,
 
-        @PositiveOrZero Integer msiCurrent,
+                @NotNull Boolean paid,
 
-        @PositiveOrZero Integer msiTotal,
+                Integer msiCurrent,
 
-        @PositiveOrZero BigDecimal purchaseTotal,
+                Integer msiTotal,
 
-        @PositiveOrZero Integer remainingMonths,
+                BigDecimal purchaseAmount,
 
-        @PositiveOrZero BigDecimal remainingTotal
+                Integer remainingMsi,
+
+                BigDecimal remainingMsiAmount
 
 ) {
 }

@@ -3,6 +3,7 @@ package com.finance.backend.exception;
 import com.finance.backend.dto.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -142,5 +143,22 @@ public class GlobalExceptionHandler {
                 return ResponseEntity
                                 .badRequest()
                                 .body(ApiResponse.error(message));
+        }
+
+        // ===================
+        // DATA INTEGRITY
+        // ===================
+        @ExceptionHandler(DataIntegrityViolationException.class)
+        public ResponseEntity<ApiResponse<Void>> handleDataIntegrityViolation(
+                        DataIntegrityViolationException exception) {
+
+                LOGGER.warn(
+                                "Violación de integridad de datos",
+                                exception);
+
+                return ResponseEntity
+                                .status(HttpStatus.CONFLICT)
+                                .body(ApiResponse.error(
+                                                "La operación no puede realizarse porque existen datos relacionados"));
         }
 }

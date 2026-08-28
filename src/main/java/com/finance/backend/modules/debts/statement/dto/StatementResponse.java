@@ -6,8 +6,10 @@ import java.time.LocalDate;
 
 public record StatementResponse(
         Long statementId,
+        Long userCardId,
         Long cardId,
-        String cardCode,
+        String bank,
+        String cardName,
         Integer year,
         Integer month,
         LocalDate periodStart,

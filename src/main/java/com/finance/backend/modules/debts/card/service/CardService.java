@@ -1,5 +1,6 @@
 package com.finance.backend.modules.debts.card.service;
 
+import com.finance.backend.exception.ConflictException;
 import com.finance.backend.exception.ResourceNotFoundException;
 import com.finance.backend.modules.debts.card.dto.CardResponse;
 import com.finance.backend.modules.debts.card.dto.CreateCardRequest;
@@ -7,10 +8,6 @@ import com.finance.backend.modules.debts.card.dto.UpdateCardRequest;
 import com.finance.backend.modules.debts.card.mapper.CardMapper;
 import com.finance.backend.modules.debts.card.model.Card;
 import com.finance.backend.modules.debts.card.repository.CardRepository;
-import com.finance.backend.modules.debts.cardproduct.model.CardProduct;
-import com.finance.backend.modules.debts.cardproduct.repository.CardProductRepository;
-import com.finance.backend.modules.user.model.User;
-import com.finance.backend.modules.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,17 +18,11 @@ import java.util.List;
 public class CardService {
 
         private final CardRepository cardRepository;
-        private final CardProductRepository cardProductRepository;
-        private final UserRepository userRepository;
 
         public CardService(
-                        CardRepository cardRepository,
-                        CardProductRepository cardProductRepository,
-                        UserRepository userRepository) {
+                        CardRepository cardRepository) {
 
                 this.cardRepository = cardRepository;
-                this.cardProductRepository = cardProductRepository;
-                this.userRepository = userRepository;
         }
 
         // ===================
@@ -39,11 +30,24 @@ public class CardService {
         // ===================
 
         @Transactional(readOnly = true)
-        public List<CardResponse> findAll(
-                        String email) {
+        public List<CardResponse> findAll() {
 
                 return cardRepository
-                                .findByUserEmailIgnoreCaseOrderByCardIdAsc(email)
+                                .findAllByOrderByBankAscCardNameAsc()
+                                .stream()
+                                .map(CardMapper::toResponse)
+                                .toList();
+        }
+
+        // ===================
+        // FIND ACTIVE
+        // ===================
+
+        @Transactional(readOnly = true)
+        public List<CardResponse> findAllActive() {
+
+                return cardRepository
+                                .findByActiveTrueOrderByBankAscCardNameAsc()
                                 .stream()
                                 .map(CardMapper::toResponse)
                                 .toList();
@@ -55,13 +59,10 @@ public class CardService {
 
         @Transactional(readOnly = true)
         public CardResponse findById(
-                        Long cardId,
-                        String email) {
+                        Long cardId) {
 
                 return CardMapper.toResponse(
-                                getCard(
-                                                cardId,
-                                                email));
+                                getCard(cardId));
         }
 
         // ===================
@@ -69,19 +70,20 @@ public class CardService {
         // ===================
 
         public CardResponse create(
-                        CreateCardRequest request,
-                        String email) {
+                        CreateCardRequest request) {
 
-                CardProduct product = getProduct(
-                                request.productId());
+                boolean exists = cardRepository
+                                .existsByBankIgnoreCaseAndCardNameIgnoreCase(
+                                                request.bank(),
+                                                request.cardName());
 
-                User user = getUser(
-                                email);
+                if (exists) {
+                        throw new ConflictException(
+                                        "La tarjeta ya existe en el catálogo");
+                }
 
                 Card card = CardMapper.toEntity(
-                                request,
-                                product,
-                                user);
+                                request);
 
                 Card savedCard = cardRepository.save(
                                 card);
@@ -96,20 +98,34 @@ public class CardService {
 
         public CardResponse update(
                         Long cardId,
-                        UpdateCardRequest request,
-                        String email) {
+                        UpdateCardRequest request) {
 
                 Card card = getCard(
-                                cardId,
-                                email);
+                                cardId);
 
-                CardProduct product = getProduct(
-                                request.productId());
+                boolean identityChanged = !card.getBank()
+                                .equalsIgnoreCase(
+                                                request.bank())
+                                || !card.getCardName()
+                                                .equalsIgnoreCase(
+                                                                request.cardName());
+
+                if (identityChanged) {
+
+                        boolean exists = cardRepository
+                                        .existsByBankIgnoreCaseAndCardNameIgnoreCase(
+                                                        request.bank(),
+                                                        request.cardName());
+
+                        if (exists) {
+                                throw new ConflictException(
+                                                "La tarjeta ya existe en el catálogo");
+                        }
+                }
 
                 CardMapper.updateEntity(
                                 card,
-                                request,
-                                product);
+                                request);
 
                 Card updatedCard = cardRepository.save(
                                 card);
@@ -123,12 +139,10 @@ public class CardService {
         // ===================
 
         public void delete(
-                        Long cardId,
-                        String email) {
+                        Long cardId) {
 
                 Card card = getCard(
-                                cardId,
-                                email);
+                                cardId);
 
                 cardRepository.delete(
                                 card);
@@ -139,43 +153,12 @@ public class CardService {
         // ===================
 
         private Card getCard(
-                        Long cardId,
-                        String email) {
+                        Long cardId) {
 
                 return cardRepository
-                                .findByCardIdAndUserEmailIgnoreCase(
-                                                cardId,
-                                                email)
+                                .findById(cardId)
                                 .orElseThrow(
                                                 () -> new ResourceNotFoundException(
-                                                                "Tarjeta no encontrada"));
-        }
-
-        // ===================
-        // PRODUCT
-        // ===================
-
-        private CardProduct getProduct(
-                        Long productId) {
-
-                return cardProductRepository
-                                .findById(productId)
-                                .orElseThrow(
-                                                () -> new ResourceNotFoundException(
-                                                                "Producto de tarjeta no encontrado"));
-        }
-
-        // ===================
-        // USER
-        // ===================
-
-        private User getUser(
-                        String email) {
-
-                return userRepository
-                                .findByEmailIgnoreCase(email)
-                                .orElseThrow(
-                                                () -> new ResourceNotFoundException(
-                                                                "Usuario no encontrado"));
+                                                                "Tarjeta de catálogo no encontrada"));
         }
 }

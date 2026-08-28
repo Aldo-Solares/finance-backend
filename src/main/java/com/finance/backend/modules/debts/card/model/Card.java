@@ -1,14 +1,12 @@
 package com.finance.backend.modules.debts.card.model;
 
-import com.finance.backend.modules.debts.cardproduct.model.CardProduct;
-import com.finance.backend.modules.user.model.User;
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "cards", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_cards_user_card_code", columnNames = {
-                "user_id",
-                "card_code"
+        @UniqueConstraint(name = "uk_cards_bank_card_name", columnNames = {
+                "bank",
+                "card_name"
         })
 })
 public class Card {
@@ -18,18 +16,13 @@ public class Card {
     @Column(name = "card_id")
     private Long cardId;
 
-    @Column(name = "card_code", nullable = false, length = 50)
-    private String cardCode;
+    @Column(name = "bank", nullable = false, length = 100)
+    private String bank;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = false)
-    private CardProduct product;
+    @Column(name = "card_name", nullable = false, length = 100)
+    private String cardName;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-
-    @Column(nullable = false)
+    @Column(name = "active", nullable = false)
     private Boolean active = true;
 
     public Card() {
@@ -39,39 +32,35 @@ public class Card {
         return cardId;
     }
 
-    public void setCardId(Long cardId) {
+    public void setCardId(
+            Long cardId) {
         this.cardId = cardId;
     }
 
-    public String getCardCode() {
-        return cardCode;
+    public String getBank() {
+        return bank;
     }
 
-    public void setCardCode(String cardCode) {
-        this.cardCode = cardCode;
+    public void setBank(
+            String bank) {
+        this.bank = bank;
     }
 
-    public CardProduct getProduct() {
-        return product;
+    public String getCardName() {
+        return cardName;
     }
 
-    public void setProduct(CardProduct product) {
-        this.product = product;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
+    public void setCardName(
+            String cardName) {
+        this.cardName = cardName;
     }
 
     public Boolean getActive() {
         return active;
     }
 
-    public void setActive(Boolean active) {
+    public void setActive(
+            Boolean active) {
         this.active = active;
     }
 }

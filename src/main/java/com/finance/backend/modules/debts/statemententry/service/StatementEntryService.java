@@ -1,3 +1,5 @@
+// src/main/java/com/finance/backend/modules/debts/statemententry/service/StatementEntryService.java
+
 package com.finance.backend.modules.debts.statemententry.service;
 
 import com.finance.backend.exception.ResourceNotFoundException;
@@ -10,11 +12,12 @@ import com.finance.backend.modules.debts.statemententry.dto.StatementEntryRespon
 import com.finance.backend.modules.debts.statemententry.dto.UpdateStatementEntryRequest;
 import com.finance.backend.modules.debts.statemententry.mapper.StatementEntryMapper;
 import com.finance.backend.modules.debts.statemententry.model.StatementEntry;
+import com.finance.backend.modules.debts.statemententry.model.StatementEntryType;
 import com.finance.backend.modules.debts.statemententry.repository.StatementEntryRepository;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -40,7 +43,7 @@ public class StatementEntryService {
                         String email) {
 
                 return statementEntryRepository
-                                .findByStatementCardUserEmailIgnoreCase(
+                                .findByStatementUserCardUserEmailIgnoreCase(
                                                 email)
                                 .stream()
                                 .map(StatementEntryMapper::toResponse)
@@ -68,7 +71,7 @@ public class StatementEntryService {
                                 email);
 
                 return statementEntryRepository
-                                .findByStatementStatementIdAndStatementCardUserEmailIgnoreCase(
+                                .findByStatementStatementIdAndStatementUserCardUserEmailIgnoreCaseOrderByDateDesc(
                                                 statementId,
                                                 email)
                                 .stream()
@@ -82,7 +85,7 @@ public class StatementEntryService {
                         String email) {
 
                 return statementEntryRepository
-                                .findByDebtorAndStatementCardUserEmailIgnoreCase(
+                                .findByDebtorAndStatementUserCardUserEmailIgnoreCase(
                                                 debtor,
                                                 email)
                                 .stream()
@@ -101,7 +104,7 @@ public class StatementEntryService {
                                 email);
 
                 return statementEntryRepository
-                                .findByStatementStatementIdAndDebtorAndStatementCardUserEmailIgnoreCase(
+                                .findByStatementStatementIdAndDebtorAndStatementUserCardUserEmailIgnoreCase(
                                                 statementId,
                                                 debtor,
                                                 email)
@@ -110,10 +113,17 @@ public class StatementEntryService {
                                 .toList();
         }
 
-        @Transactional
         public StatementEntryResponse create(
                         CreateStatementEntryRequest request,
                         String email) {
+
+                validateEntryType(
+                                request.entryType(),
+                                request.msiCurrent(),
+                                request.msiTotal(),
+                                request.purchaseAmount(),
+                                request.remainingMsi(),
+                                request.remainingMsiAmount());
 
                 Statement statement = getOwnedStatement(
                                 request.statementId(),
@@ -134,11 +144,18 @@ public class StatementEntryService {
                                 savedEntry);
         }
 
-        @Transactional
         public StatementEntryResponse update(
                         Long entryId,
                         UpdateStatementEntryRequest request,
                         String email) {
+
+                validateEntryType(
+                                request.entryType(),
+                                request.msiCurrent(),
+                                request.msiTotal(),
+                                request.purchaseAmount(),
+                                request.remainingMsi(),
+                                request.remainingMsiAmount());
 
                 StatementEntry entry = getOwnedEntry(
                                 entryId,
@@ -164,7 +181,6 @@ public class StatementEntryService {
                                 updatedEntry);
         }
 
-        @Transactional
         public void delete(
                         Long entryId,
                         String email) {
@@ -177,12 +193,35 @@ public class StatementEntryService {
                                 entry);
         }
 
+        private void validateEntryType(
+                        StatementEntryType entryType,
+                        Integer msiCurrent,
+                        Integer msiTotal,
+                        BigDecimal purchaseAmount,
+                        Integer remainingMsi,
+                        BigDecimal remainingMsiAmount) {
+
+                if (entryType != StatementEntryType.RECURRING) {
+                        return;
+                }
+
+                if (msiCurrent != null
+                                || msiTotal != null
+                                || purchaseAmount != null
+                                || remainingMsi != null
+                                || remainingMsiAmount != null) {
+
+                        throw new IllegalArgumentException(
+                                        "Los movimientos recurrentes no pueden tener información MSI");
+                }
+        }
+
         private StatementEntry getOwnedEntry(
                         Long entryId,
                         String email) {
 
                 return statementEntryRepository
-                                .findByEntryIdAndStatementCardUserEmailIgnoreCase(
+                                .findByEntryIdAndStatementUserCardUserEmailIgnoreCase(
                                                 entryId,
                                                 email)
                                 .orElseThrow(
@@ -195,7 +234,7 @@ public class StatementEntryService {
                         String email) {
 
                 return statementRepository
-                                .findByStatementIdAndCardUserEmailIgnoreCase(
+                                .findByStatementIdAndUserCardUserEmailIgnoreCase(
                                                 statementId,
                                                 email)
                                 .orElseThrow(
@@ -207,7 +246,8 @@ public class StatementEntryService {
                         Long conceptId) {
 
                 return conceptRepository
-                                .findById(conceptId)
+                                .findById(
+                                                conceptId)
                                 .orElseThrow(
                                                 () -> new ResourceNotFoundException(
                                                                 "Concepto no encontrado"));

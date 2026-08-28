@@ -1,72 +1,87 @@
-// src/main/java/com/finance/backend/modules/debts/statement/service/StatementService.java
-
 package com.finance.backend.modules.debts.statement.service;
 
+import com.finance.backend.exception.ConflictException;
 import com.finance.backend.exception.ResourceNotFoundException;
-import com.finance.backend.modules.debts.card.model.Card;
-import com.finance.backend.modules.debts.card.repository.CardRepository;
 import com.finance.backend.modules.debts.statement.dto.CreateStatementRequest;
+import com.finance.backend.modules.debts.statement.dto.StatementDateSuggestionResponse;
 import com.finance.backend.modules.debts.statement.dto.StatementResponse;
 import com.finance.backend.modules.debts.statement.dto.UpdateStatementRequest;
 import com.finance.backend.modules.debts.statement.mapper.StatementMapper;
 import com.finance.backend.modules.debts.statement.model.Statement;
 import com.finance.backend.modules.debts.statement.model.StatementStatus;
 import com.finance.backend.modules.debts.statement.repository.StatementRepository;
-
+import com.finance.backend.modules.debts.statemententry.model.StatementEntry;
+import com.finance.backend.modules.debts.statemententry.model.StatementEntryType;
+import com.finance.backend.modules.debts.statemententry.repository.StatementEntryRepository;
+import com.finance.backend.modules.debts.usercard.model.UserCard;
+import com.finance.backend.modules.debts.usercard.repository.UserCardRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.springframework.http.HttpStatus.CONFLICT;
 
 @Service
 @Transactional
 public class StatementService {
 
         private final StatementRepository statementRepository;
-        private final CardRepository cardRepository;
+        private final StatementEntryRepository statementEntryRepository;
+        private final UserCardRepository userCardRepository;
 
         public StatementService(
                         StatementRepository statementRepository,
-                        CardRepository cardRepository) {
+                        StatementEntryRepository statementEntryRepository,
+                        UserCardRepository userCardRepository) {
 
                 this.statementRepository = statementRepository;
-                this.cardRepository = cardRepository;
+                this.statementEntryRepository = statementEntryRepository;
+                this.userCardRepository = userCardRepository;
         }
+
+        // ===================
+        // FIND ALL
+        // ===================
 
         @Transactional(readOnly = true)
         public List<StatementResponse> findAll(
                         String email) {
 
                 return statementRepository
-                                .findByCardUserEmailIgnoreCaseOrderByYearDescMonthDesc(
+                                .findByUserCardUserEmailIgnoreCaseOrderByYearDescMonthDesc(
                                                 email)
                                 .stream()
                                 .map(StatementMapper::toResponse)
                                 .toList();
         }
 
+        // ===================
+        // FIND BY USER CARD
+        // ===================
+
         @Transactional(readOnly = true)
-        public List<StatementResponse> findByCardId(
-                        Long cardId,
+        public List<StatementResponse> findByUserCardId(
+                        Long userCardId,
                         String email) {
 
-                getOwnedCard(
-                                cardId,
+                getOwnedUserCard(
+                                userCardId,
                                 email);
 
                 return statementRepository
-                                .findByCardCardIdAndCardUserEmailIgnoreCaseOrderByYearDescMonthDesc(
-                                                cardId,
+                                .findByUserCardUserCardIdAndUserCardUserEmailIgnoreCaseOrderByYearDescMonthDesc(
+                                                userCardId,
                                                 email)
                                 .stream()
                                 .map(StatementMapper::toResponse)
                                 .toList();
         }
+
+        // ===================
+        // FIND BY ID
+        // ===================
 
         @Transactional(readOnly = true)
         public StatementResponse findById(
@@ -79,35 +94,87 @@ public class StatementService {
                                                 email));
         }
 
-        @Transactional
+        // ===================
+        // DATE SUGGESTION
+        // ===================
+
+        @Transactional(readOnly = true)
+        public StatementDateSuggestionResponse getDateSuggestion(
+                        Long userCardId,
+                        String email) {
+
+                getOwnedUserCard(
+                                userCardId,
+                                email);
+
+                Statement latestStatement = statementRepository
+                                .findFirstByUserCardUserCardIdAndUserCardUserEmailIgnoreCaseOrderByYearDescMonthDesc(
+                                                userCardId,
+                                                email)
+                                .orElse(null);
+
+                if (latestStatement == null) {
+                        return new StatementDateSuggestionResponse(
+                                        null,
+                                        null,
+                                        null);
+                }
+
+                return new StatementDateSuggestionResponse(
+                                plusMonth(
+                                                latestStatement.getPeriodStart()),
+                                plusMonth(
+                                                latestStatement.getPeriodEnd()),
+                                plusMonth(
+                                                latestStatement.getPaymentDate()));
+        }
+
+        // ===================
+        // CREATE
+        // ===================
+
         public StatementResponse create(
                         CreateStatementRequest request,
                         String email) {
 
-                Card card = getOwnedCard(
-                                request.cardId(),
+                UserCard userCard = getOwnedUserCard(
+                                request.userCardId(),
                                 email);
 
+                int year = request
+                                .periodEnd()
+                                .getYear();
+
+                int month = request
+                                .periodEnd()
+                                .getMonthValue();
+
                 boolean exists = statementRepository
-                                .existsByCardCardIdAndYearAndMonth(
-                                                request.cardId(),
-                                                request.year(),
-                                                request.month());
+                                .existsByUserCardUserCardIdAndYearAndMonth(
+                                                request.userCardId(),
+                                                year,
+                                                month);
 
                 if (exists) {
-                        throw new ResponseStatusException(
-                                        CONFLICT,
+                        throw new ConflictException(
                                         "Ya existe un estado de cuenta para "
-                                                        + request.year()
+                                                        + year
                                                         + "-"
-                                                        + request.month());
+                                                        + month);
                 }
+
+                Statement previousStatement = findPreviousStatement(
+                                request.userCardId(),
+                                year,
+                                month,
+                                email);
 
                 Statement statement = StatementMapper.toEntity(
                                 request,
-                                card);
+                                userCard);
 
-                statement.setPaid(false);
+                statement.setPaid(
+                                false);
 
                 statement.setStatus(
                                 calculateStatus(
@@ -117,11 +184,21 @@ public class StatementService {
                 Statement savedStatement = statementRepository.save(
                                 statement);
 
+                if (previousStatement != null) {
+                        createNextMsiEntries(
+                                        previousStatement,
+                                        savedStatement,
+                                        email);
+                }
+
                 return StatementMapper.toResponse(
                                 savedStatement);
         }
 
-        @Transactional
+        // ===================
+        // UPDATE
+        // ===================
+
         public StatementResponse update(
                         Long statementId,
                         UpdateStatementRequest request,
@@ -131,40 +208,47 @@ public class StatementService {
                                 statementId,
                                 email);
 
-                Card card = getOwnedCard(
-                                request.cardId(),
+                UserCard userCard = getOwnedUserCard(
+                                request.userCardId(),
                                 email);
 
-                boolean periodChanged = !statement.getCard()
-                                .getCardId()
-                                .equals(request.cardId())
+                int year = request
+                                .periodEnd()
+                                .getYear();
+
+                int month = request
+                                .periodEnd()
+                                .getMonthValue();
+
+                boolean periodChanged = !statement.getUserCard()
+                                .getUserCardId()
+                                .equals(request.userCardId())
                                 || !statement.getYear()
-                                                .equals(request.year())
+                                                .equals(year)
                                 || !statement.getMonth()
-                                                .equals(request.month());
+                                                .equals(month);
 
                 if (periodChanged) {
 
                         boolean exists = statementRepository
-                                        .existsByCardCardIdAndYearAndMonth(
-                                                        request.cardId(),
-                                                        request.year(),
-                                                        request.month());
+                                        .existsByUserCardUserCardIdAndYearAndMonth(
+                                                        request.userCardId(),
+                                                        year,
+                                                        month);
 
                         if (exists) {
-                                throw new ResponseStatusException(
-                                                CONFLICT,
+                                throw new ConflictException(
                                                 "Ya existe un estado de cuenta para "
-                                                                + request.year()
+                                                                + year
                                                                 + "-"
-                                                                + request.month());
+                                                                + month);
                         }
                 }
 
                 StatementMapper.updateEntity(
                                 statement,
                                 request,
-                                card);
+                                userCard);
 
                 statement.setStatus(
                                 calculateStatus(
@@ -178,7 +262,10 @@ public class StatementService {
                                 updatedStatement);
         }
 
-        @Transactional
+        // ===================
+        // PAID
+        // ===================
+
         public StatementResponse updatePaid(
                         Long statementId,
                         Boolean paid,
@@ -198,18 +285,21 @@ public class StatementService {
                                 updatedStatement);
         }
 
-        @Transactional
+        // ===================
+        // PAY ALL
+        // ===================
+
         public List<StatementResponse> payAll(
-                        Long cardId,
+                        Long userCardId,
                         String email) {
 
-                getOwnedCard(
-                                cardId,
+                getOwnedUserCard(
+                                userCardId,
                                 email);
 
                 List<Statement> statements = statementRepository
-                                .findByCardCardIdAndCardUserEmailIgnoreCaseOrderByYearDescMonthDesc(
-                                                cardId,
+                                .findByUserCardUserCardIdAndUserCardUserEmailIgnoreCaseOrderByYearDescMonthDesc(
+                                                userCardId,
                                                 email);
 
                 List<Statement> statementsToUpdate = new ArrayList<>();
@@ -238,7 +328,99 @@ public class StatementService {
                                 .toList();
         }
 
-        @Transactional
+        // ===================
+        // CREATE NEXT MSI
+        // ===================
+
+        public void createNextMsiEntries(
+                        Statement previousStatement,
+                        Statement newStatement,
+                        String email) {
+
+                List<StatementEntry> previousEntries = statementEntryRepository
+                                .findByStatementStatementIdAndStatementUserCardUserEmailIgnoreCaseOrderByDateDesc(
+                                                previousStatement.getStatementId(),
+                                                email);
+
+                for (StatementEntry previousEntry : previousEntries) {
+
+                        if (!hasActiveMsi(
+                                        previousEntry)) {
+
+                                continue;
+                        }
+
+                        int nextMsiCurrent = previousEntry.getMsiCurrent() + 1;
+
+                        int remainingMsi = previousEntry.getMsiTotal()
+                                        - nextMsiCurrent
+                                        + 1;
+
+                        BigDecimal remainingMsiAmount = previousEntry
+                                        .getAmount()
+                                        .multiply(
+                                                        BigDecimal.valueOf(
+                                                                        remainingMsi));
+
+                        StatementEntry newEntry = new StatementEntry();
+
+                        newEntry.setStatement(
+                                        newStatement);
+
+                        newEntry.setConcept(
+                                        previousEntry.getConcept());
+
+                        newEntry.setDebtor(
+                                        previousEntry.getDebtor());
+
+                        newEntry.setDescription(
+                                        previousEntry.getDescription());
+
+                        newEntry.setEntryType(
+                                        previousEntry.getEntryType());
+
+                        newEntry.setDate(
+                                        previousEntry.getDate());
+
+                        newEntry.setAmount(
+                                        previousEntry.getAmount());
+
+                        newEntry.setPaid(
+                                        false);
+
+                        newEntry.setMsiCurrent(
+                                        nextMsiCurrent);
+
+                        newEntry.setMsiTotal(
+                                        previousEntry.getMsiTotal());
+
+                        newEntry.setPurchaseAmount(
+                                        previousEntry.getPurchaseAmount());
+
+                        newEntry.setRemainingMsi(
+                                        remainingMsi);
+
+                        newEntry.setRemainingMsiAmount(
+                                        remainingMsiAmount);
+
+                        statementEntryRepository.save(
+                                        newEntry);
+                }
+        }
+
+        private boolean hasActiveMsi(
+                        StatementEntry entry) {
+
+                return entry.getEntryType() == StatementEntryType.PURCHASE
+                                && entry.getMsiCurrent() != null
+                                && entry.getMsiTotal() != null
+                                && entry.getMsiCurrent() < entry.getMsiTotal();
+        }
+
+        // ===================
+        // REFRESH STATUS
+        // ===================
+
         public void refreshStatuses() {
 
                 LocalDate today = LocalDate.now();
@@ -269,7 +451,10 @@ public class StatementService {
                 }
         }
 
-        @Transactional
+        // ===================
+        // DELETE
+        // ===================
+
         public void delete(
                         Long statementId,
                         String email) {
@@ -278,9 +463,22 @@ public class StatementService {
                                 statementId,
                                 email);
 
+                boolean hasEntries = statementEntryRepository
+                                .existsByStatementStatementId(
+                                                statementId);
+
+                if (hasEntries) {
+                        throw new ConflictException(
+                                        "No se puede eliminar el estado de cuenta porque tiene movimientos registrados");
+                }
+
                 statementRepository.delete(
                                 statement);
         }
+
+        // ===================
+        // STATUS
+        // ===================
 
         private StatementStatus calculateStatus(
                         Statement statement,
@@ -321,12 +519,57 @@ public class StatementService {
                 return StatementStatus.CLOSED;
         }
 
+        // ===================
+        // PREVIOUS STATEMENT
+        // ===================
+
+        private Statement findPreviousStatement(
+                        Long userCardId,
+                        Integer year,
+                        Integer month,
+                        String email) {
+
+                int previousYear = year;
+                int previousMonth = month - 1;
+
+                if (previousMonth == 0) {
+                        previousMonth = 12;
+                        previousYear--;
+                }
+
+                return statementRepository
+                                .findByUserCardUserCardIdAndYearAndMonthAndUserCardUserEmailIgnoreCase(
+                                                userCardId,
+                                                previousYear,
+                                                previousMonth,
+                                                email)
+                                .orElse(null);
+        }
+
+        // ===================
+        // PLUS MONTH
+        // ===================
+
+        private LocalDate plusMonth(
+                        LocalDate date) {
+
+                if (date == null) {
+                        return null;
+                }
+
+                return date.plusMonths(1);
+        }
+
+        // ===================
+        // OWNED STATEMENT
+        // ===================
+
         private Statement getOwnedStatement(
                         Long statementId,
                         String email) {
 
                 return statementRepository
-                                .findByStatementIdAndCardUserEmailIgnoreCase(
+                                .findByStatementIdAndUserCardUserEmailIgnoreCase(
                                                 statementId,
                                                 email)
                                 .orElseThrow(
@@ -334,16 +577,20 @@ public class StatementService {
                                                                 "Estado de cuenta no encontrado"));
         }
 
-        private Card getOwnedCard(
-                        Long cardId,
+        // ===================
+        // OWNED USER CARD
+        // ===================
+
+        private UserCard getOwnedUserCard(
+                        Long userCardId,
                         String email) {
 
-                return cardRepository
-                                .findByCardIdAndUserEmailIgnoreCase(
-                                                cardId,
+                return userCardRepository
+                                .findByUserCardIdAndUserEmailIgnoreCase(
+                                                userCardId,
                                                 email)
                                 .orElseThrow(
                                                 () -> new ResourceNotFoundException(
-                                                                "Tarjeta no encontrada"));
+                                                                "Tarjeta del usuario no encontrada"));
         }
 }

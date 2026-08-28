@@ -16,26 +16,31 @@ public class StatementEntry {
     @Column(name = "entry_id")
     private Long entryId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "statement_id", nullable = false)
     private Statement statement;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "concept_id", nullable = false)
     private Concept concept;
 
-    @Column(name = "debtor", nullable = false, length = 100)
+    @Column(name = "debtor", nullable = false)
     private String debtor;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "purchase_date")
-    private LocalDate purchaseDate;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "entry_type", nullable = false)
+    private StatementEntryType entryType;
 
-    @Column(name = "installment_amount", precision = 14, scale = 2)
-    private BigDecimal installmentAmount;
+    @Column(name = "date")
+    private LocalDate date;
 
+    @Column(name = "amount", precision = 14, scale = 2, nullable = false)
+    private BigDecimal amount;
+
+    @Column(name = "paid", nullable = false)
     private Boolean paid;
 
     @Column(name = "msi_current")
@@ -44,17 +49,14 @@ public class StatementEntry {
     @Column(name = "msi_total")
     private Integer msiTotal;
 
-    @Column(name = "purchase_total", precision = 14, scale = 2)
-    private BigDecimal purchaseTotal;
+    @Column(name = "purchase_amount", precision = 14, scale = 2)
+    private BigDecimal purchaseAmount;
 
-    @Column(name = "remaining_months")
-    private Integer remainingMonths;
+    @Column(name = "remaining_msi")
+    private Integer remainingMsi;
 
-    @Column(name = "remaining_total", precision = 14, scale = 2)
-    private BigDecimal remainingTotal;
-
-    public StatementEntry() {
-    }
+    @Column(name = "remaining_msi_amount", precision = 14, scale = 2)
+    private BigDecimal remainingMsiAmount;
 
     public Long getEntryId() {
         return entryId;
@@ -96,20 +98,28 @@ public class StatementEntry {
         this.description = description;
     }
 
-    public LocalDate getPurchaseDate() {
-        return purchaseDate;
+    public StatementEntryType getEntryType() {
+        return entryType;
     }
 
-    public void setPurchaseDate(LocalDate purchaseDate) {
-        this.purchaseDate = purchaseDate;
+    public void setEntryType(StatementEntryType entryType) {
+        this.entryType = entryType;
     }
 
-    public BigDecimal getInstallmentAmount() {
-        return installmentAmount;
+    public LocalDate getDate() {
+        return date;
     }
 
-    public void setInstallmentAmount(BigDecimal installmentAmount) {
-        this.installmentAmount = installmentAmount;
+    public void setDate(LocalDate date) {
+        this.date = date;
+    }
+
+    public BigDecimal getAmount() {
+        return amount;
+    }
+
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
     }
 
     public Boolean getPaid() {
@@ -136,27 +146,27 @@ public class StatementEntry {
         this.msiTotal = msiTotal;
     }
 
-    public BigDecimal getPurchaseTotal() {
-        return purchaseTotal;
+    public BigDecimal getPurchaseAmount() {
+        return purchaseAmount;
     }
 
-    public void setPurchaseTotal(BigDecimal purchaseTotal) {
-        this.purchaseTotal = purchaseTotal;
+    public void setPurchaseAmount(BigDecimal purchaseAmount) {
+        this.purchaseAmount = purchaseAmount;
     }
 
-    public Integer getRemainingMonths() {
-        return remainingMonths;
+    public Integer getRemainingMsi() {
+        return remainingMsi;
     }
 
-    public void setRemainingMonths(Integer remainingMonths) {
-        this.remainingMonths = remainingMonths;
+    public void setRemainingMsi(Integer remainingMsi) {
+        this.remainingMsi = remainingMsi;
     }
 
-    public BigDecimal getRemainingTotal() {
-        return remainingTotal;
+    public BigDecimal getRemainingMsiAmount() {
+        return remainingMsiAmount;
     }
 
-    public void setRemainingTotal(BigDecimal remainingTotal) {
-        this.remainingTotal = remainingTotal;
+    public void setRemainingMsiAmount(BigDecimal remainingMsiAmount) {
+        this.remainingMsiAmount = remainingMsiAmount;
     }
 }

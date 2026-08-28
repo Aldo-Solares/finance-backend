@@ -4,12 +4,11 @@ package com.finance.backend.modules.debts.statement.controller;
 
 import com.finance.backend.dto.ApiResponse;
 import com.finance.backend.modules.debts.statement.dto.CreateStatementRequest;
+import com.finance.backend.modules.debts.statement.dto.StatementDateSuggestionResponse;
 import com.finance.backend.modules.debts.statement.dto.StatementResponse;
 import com.finance.backend.modules.debts.statement.dto.UpdateStatementRequest;
 import com.finance.backend.modules.debts.statement.service.StatementService;
-
 import jakarta.validation.Valid;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -49,14 +48,14 @@ public class StatementController {
                                                 authentication.getName()));
         }
 
-        @GetMapping("/card/{cardId}")
-        public ApiResponse<List<StatementResponse>> findByCardId(
-                        @PathVariable Long cardId,
+        @GetMapping("/user-card/{userCardId}")
+        public ApiResponse<List<StatementResponse>> findByUserCardId(
+                        @PathVariable Long userCardId,
                         Authentication authentication) {
 
                 return ApiResponse.success(
-                                statementService.findByCardId(
-                                                cardId,
+                                statementService.findByUserCardId(
+                                                userCardId,
                                                 authentication.getName()));
         }
 
@@ -91,15 +90,15 @@ public class StatementController {
                                                 authentication.getName()));
         }
 
-        @PatchMapping("/card/{cardId}/pay-all")
+        @PatchMapping("/user-card/{userCardId}/pay-all")
         public ApiResponse<List<StatementResponse>> payAll(
-                        @PathVariable Long cardId,
+                        @PathVariable Long userCardId,
                         Authentication authentication) {
 
                 return ApiResponse.success(
                                 "Todos los periodos fueron marcados como pagados",
                                 statementService.payAll(
-                                                cardId,
+                                                userCardId,
                                                 authentication.getName()));
         }
 
@@ -115,5 +114,16 @@ public class StatementController {
                 return ApiResponse.success(
                                 "Estado de cuenta eliminado",
                                 null);
+        }
+
+        @GetMapping("/suggestion")
+        public ApiResponse<StatementDateSuggestionResponse> getDateSuggestion(
+                        @RequestParam Long userCardId,
+                        Authentication authentication) {
+
+                return ApiResponse.success(
+                                statementService.getDateSuggestion(
+                                                userCardId,
+                                                authentication.getName()));
         }
 }

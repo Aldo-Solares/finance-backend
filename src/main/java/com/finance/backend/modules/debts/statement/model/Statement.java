@@ -1,6 +1,6 @@
 package com.finance.backend.modules.debts.statement.model;
 
-import com.finance.backend.modules.debts.card.model.Card;
+import com.finance.backend.modules.debts.usercard.model.UserCard;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
@@ -8,7 +8,7 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "statements", uniqueConstraints = {
         @UniqueConstraint(name = "uq_statement_period", columnNames = {
-                "card_id",
+                "user_card_id",
                 "year",
                 "month"
         })
@@ -20,9 +20,9 @@ public class Statement {
     @Column(name = "statement_id")
     private Long statementId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "card_id", nullable = false)
-    private Card card;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_card_id", nullable = false)
+    private UserCard userCard;
 
     @Column(nullable = false)
     private Integer year;
@@ -30,13 +30,13 @@ public class Statement {
     @Column(nullable = false)
     private Integer month;
 
-    @Column(name = "period_start")
+    @Column(name = "period_start", nullable = false)
     private LocalDate periodStart;
 
-    @Column(name = "period_end")
+    @Column(name = "period_end", nullable = false)
     private LocalDate periodEnd;
 
-    @Column(name = "payment_date")
+    @Column(name = "payment_date", nullable = false)
     private LocalDate paymentDate;
 
     @Enumerated(EnumType.STRING)
@@ -56,23 +56,26 @@ public class Statement {
         return statementId;
     }
 
-    public void setStatementId(Long statementId) {
+    public void setStatementId(
+            Long statementId) {
         this.statementId = statementId;
     }
 
-    public Card getCard() {
-        return card;
+    public UserCard getUserCard() {
+        return userCard;
     }
 
-    public void setCard(Card card) {
-        this.card = card;
+    public void setUserCard(
+            UserCard userCard) {
+        this.userCard = userCard;
     }
 
     public Integer getYear() {
         return year;
     }
 
-    public void setYear(Integer year) {
+    public void setYear(
+            Integer year) {
         this.year = year;
     }
 
@@ -80,7 +83,8 @@ public class Statement {
         return month;
     }
 
-    public void setMonth(Integer month) {
+    public void setMonth(
+            Integer month) {
         this.month = month;
     }
 
@@ -88,7 +92,8 @@ public class Statement {
         return periodStart;
     }
 
-    public void setPeriodStart(LocalDate periodStart) {
+    public void setPeriodStart(
+            LocalDate periodStart) {
         this.periodStart = periodStart;
     }
 
@@ -96,7 +101,8 @@ public class Statement {
         return periodEnd;
     }
 
-    public void setPeriodEnd(LocalDate periodEnd) {
+    public void setPeriodEnd(
+            LocalDate periodEnd) {
         this.periodEnd = periodEnd;
     }
 
@@ -104,7 +110,8 @@ public class Statement {
         return paymentDate;
     }
 
-    public void setPaymentDate(LocalDate paymentDate) {
+    public void setPaymentDate(
+            LocalDate paymentDate) {
         this.paymentDate = paymentDate;
     }
 
@@ -112,7 +119,8 @@ public class Statement {
         return status;
     }
 
-    public void setStatus(StatementStatus status) {
+    public void setStatus(
+            StatementStatus status) {
         this.status = status;
     }
 
@@ -120,7 +128,8 @@ public class Statement {
         return paid;
     }
 
-    public void setPaid(Boolean paid) {
+    public void setPaid(
+            Boolean paid) {
         this.paid = paid;
     }
 
@@ -128,7 +137,8 @@ public class Statement {
         return notes;
     }
 
-    public void setNotes(String notes) {
+    public void setNotes(
+            String notes) {
         this.notes = notes;
     }
 }

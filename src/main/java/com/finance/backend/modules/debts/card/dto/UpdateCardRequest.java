@@ -2,15 +2,14 @@ package com.finance.backend.modules.debts.card.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 
 public record UpdateCardRequest(
 
-        @NotBlank @Size(max = 50) String cardCode,
+                @NotBlank String bank,
 
-        @NotNull Long productId,
+                @NotBlank String cardName,
 
-        @NotNull Boolean active
+                @NotNull Boolean active
 
 ) {
 }
