@@ -2,7 +2,7 @@ package com.finance.backend.modules.trading.trade.model;
 
 import com.finance.backend.modules.trading.instrument.model.Instrument;
 import com.finance.backend.modules.trading.tradesale.model.TradeSale;
-import com.finance.backend.modules.trading.tradingaccount.model.TradingAccount;
+import com.finance.backend.modules.trading.usertradingaccount.model.UserTradingAccount;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -20,8 +20,8 @@ public class Trade {
     private Long tradeId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "trading_account_id", nullable = false)
-    private TradingAccount tradingAccount;
+    @JoinColumn(name = "user_trading_account_id", nullable = false)
+    private UserTradingAccount userTradingAccount;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "instrument_id", nullable = false)
@@ -57,21 +57,19 @@ public class Trade {
         this.tradeId = tradeId;
     }
 
-    public TradingAccount getTradingAccount() {
-        return tradingAccount;
+    public UserTradingAccount getUserTradingAccount() {
+        return userTradingAccount;
     }
 
-    public void setTradingAccount(
-            TradingAccount tradingAccount) {
-        this.tradingAccount = tradingAccount;
+    public void setUserTradingAccount(UserTradingAccount userTradingAccount) {
+        this.userTradingAccount = userTradingAccount;
     }
 
     public Instrument getInstrument() {
         return instrument;
     }
 
-    public void setInstrument(
-            Instrument instrument) {
+    public void setInstrument(Instrument instrument) {
         this.instrument = instrument;
     }
 
@@ -79,8 +77,7 @@ public class Trade {
         return quantity;
     }
 
-    public void setQuantity(
-            BigDecimal quantity) {
+    public void setQuantity(BigDecimal quantity) {
         this.quantity = quantity;
     }
 
@@ -88,8 +85,7 @@ public class Trade {
         return purchasePrice;
     }
 
-    public void setPurchasePrice(
-            BigDecimal purchasePrice) {
+    public void setPurchasePrice(BigDecimal purchasePrice) {
         this.purchasePrice = purchasePrice;
     }
 
@@ -97,8 +93,7 @@ public class Trade {
         return purchaseCommission;
     }
 
-    public void setPurchaseCommission(
-            BigDecimal purchaseCommission) {
+    public void setPurchaseCommission(BigDecimal purchaseCommission) {
         this.purchaseCommission = purchaseCommission;
     }
 
@@ -106,8 +101,7 @@ public class Trade {
         return purchaseCommissionRate;
     }
 
-    public void setPurchaseCommissionRate(
-            BigDecimal purchaseCommissionRate) {
+    public void setPurchaseCommissionRate(BigDecimal purchaseCommissionRate) {
         this.purchaseCommissionRate = purchaseCommissionRate;
     }
 
@@ -115,8 +109,7 @@ public class Trade {
         return purchaseDate;
     }
 
-    public void setPurchaseDate(
-            LocalDate purchaseDate) {
+    public void setPurchaseDate(LocalDate purchaseDate) {
         this.purchaseDate = purchaseDate;
     }
 
@@ -124,8 +117,7 @@ public class Trade {
         return sales;
     }
 
-    public void setSales(
-            List<TradeSale> sales) {
+    public void setSales(List<TradeSale> sales) {
         this.sales = sales;
     }
 }

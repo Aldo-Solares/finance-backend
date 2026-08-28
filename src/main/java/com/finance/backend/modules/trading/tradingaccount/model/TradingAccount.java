@@ -1,6 +1,5 @@
 package com.finance.backend.modules.trading.tradingaccount.model;
 
-import com.finance.backend.modules.user.model.User;
 import jakarta.persistence.*;
 
 @Entity
@@ -12,15 +11,20 @@ public class TradingAccount {
     @Column(name = "trading_account_id")
     private Long tradingAccountId;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Column(nullable = false)
+    private String institution;
 
     @Column(nullable = false)
     private String name;
 
+    @Column(name = "account_type", nullable = false)
+    private String accountType;
+
     @Column(nullable = false)
     private String currency;
+
+    @Column(nullable = false)
+    private Boolean active;
 
     public TradingAccount() {
     }
@@ -33,12 +37,12 @@ public class TradingAccount {
         this.tradingAccountId = tradingAccountId;
     }
 
-    public User getUser() {
-        return user;
+    public String getInstitution() {
+        return institution;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setInstitution(String institution) {
+        this.institution = institution;
     }
 
     public String getName() {
@@ -49,11 +53,27 @@ public class TradingAccount {
         this.name = name;
     }
 
+    public String getAccountType() {
+        return accountType;
+    }
+
+    public void setAccountType(String accountType) {
+        this.accountType = accountType;
+    }
+
     public String getCurrency() {
         return currency;
     }
 
     public void setCurrency(String currency) {
         this.currency = currency;
+    }
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
     }
 }

@@ -7,8 +7,6 @@ import com.finance.backend.modules.trading.tradingaccount.dto.UpdateTradingAccou
 import com.finance.backend.modules.trading.tradingaccount.mapper.TradingAccountMapper;
 import com.finance.backend.modules.trading.tradingaccount.model.TradingAccount;
 import com.finance.backend.modules.trading.tradingaccount.repository.TradingAccountRepository;
-import com.finance.backend.modules.user.model.User;
-import com.finance.backend.modules.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,15 +17,11 @@ import java.util.List;
 public class TradingAccountService {
 
         private final TradingAccountRepository tradingAccountRepository;
-        private final UserRepository userRepository;
 
         public TradingAccountService(
-                        TradingAccountRepository tradingAccountRepository,
-                        UserRepository userRepository) {
+                        TradingAccountRepository tradingAccountRepository) {
 
                 this.tradingAccountRepository = tradingAccountRepository;
-
-                this.userRepository = userRepository;
         }
 
         // ===================
@@ -35,27 +29,21 @@ public class TradingAccountService {
         // ===================
 
         @Transactional(readOnly = true)
-        public List<TradingAccountResponse> findAll(
-                        String email) {
+        public List<TradingAccountResponse> findAll() {
 
                 return tradingAccountRepository
-                                .findByUserEmailIgnoreCaseOrderByTradingAccountIdAsc(
-                                                email)
+                                .findAllByOrderByTradingAccountIdAsc()
                                 .stream()
-                                .map(
-                                                TradingAccountMapper::toResponse)
+                                .map(TradingAccountMapper::toResponse)
                                 .toList();
         }
 
         @Transactional(readOnly = true)
         public TradingAccountResponse findById(
-                        Long tradingAccountId,
-                        String email) {
+                        Long tradingAccountId) {
 
                 return TradingAccountMapper.toResponse(
-                                getEntity(
-                                                tradingAccountId,
-                                                email));
+                                getEntity(tradingAccountId));
         }
 
         // ===================
@@ -63,29 +51,11 @@ public class TradingAccountService {
         // ===================
 
         public TradingAccountResponse create(
-                        CreateTradingAccountRequest request,
-                        String email) {
+                        CreateTradingAccountRequest request) {
 
-                User user = userRepository
-                                .findById(
-                                                request.userId())
-                                .orElseThrow(
-                                                () -> new ResourceNotFoundException(
-                                                                "Usuario no encontrado"));
+                TradingAccount tradingAccount = TradingAccountMapper.toEntity(request);
 
-                if (!user.getEmail()
-                                .equalsIgnoreCase(email)) {
-
-                        throw new ResourceNotFoundException(
-                                        "Usuario no encontrado");
-                }
-
-                TradingAccount tradingAccount = TradingAccountMapper.toEntity(
-                                request,
-                                user);
-
-                TradingAccount savedTradingAccount = tradingAccountRepository.save(
-                                tradingAccount);
+                TradingAccount savedTradingAccount = tradingAccountRepository.save(tradingAccount);
 
                 return TradingAccountMapper.toResponse(
                                 savedTradingAccount);
@@ -97,19 +67,15 @@ public class TradingAccountService {
 
         public TradingAccountResponse update(
                         Long tradingAccountId,
-                        UpdateTradingAccountRequest request,
-                        String email) {
+                        UpdateTradingAccountRequest request) {
 
-                TradingAccount tradingAccount = getEntity(
-                                tradingAccountId,
-                                email);
+                TradingAccount tradingAccount = getEntity(tradingAccountId);
 
                 TradingAccountMapper.updateEntity(
                                 tradingAccount,
                                 request);
 
-                TradingAccount savedTradingAccount = tradingAccountRepository.save(
-                                tradingAccount);
+                TradingAccount savedTradingAccount = tradingAccountRepository.save(tradingAccount);
 
                 return TradingAccountMapper.toResponse(
                                 savedTradingAccount);
@@ -120,12 +86,9 @@ public class TradingAccountService {
         // ===================
 
         public void delete(
-                        Long tradingAccountId,
-                        String email) {
+                        Long tradingAccountId) {
 
-                TradingAccount tradingAccount = getEntity(
-                                tradingAccountId,
-                                email);
+                TradingAccount tradingAccount = getEntity(tradingAccountId);
 
                 tradingAccountRepository.delete(
                                 tradingAccount);
@@ -137,13 +100,10 @@ public class TradingAccountService {
 
         @Transactional(readOnly = true)
         public TradingAccount getEntity(
-                        Long tradingAccountId,
-                        String email) {
+                        Long tradingAccountId) {
 
                 return tradingAccountRepository
-                                .findByTradingAccountIdAndUserEmailIgnoreCase(
-                                                tradingAccountId,
-                                                email)
+                                .findById(tradingAccountId)
                                 .orElseThrow(
                                                 () -> new ResourceNotFoundException(
                                                                 "Cuenta de trading no encontrada"));

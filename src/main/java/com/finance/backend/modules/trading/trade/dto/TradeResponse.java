@@ -9,53 +9,55 @@ import java.util.List;
 
 public record TradeResponse(
 
-                Long tradeId,
+        Long tradeId,
 
-                Long tradingAccountId,
+        Long userTradingAccountId,
 
-                String tradingAccountName,
+        Long tradingAccountId,
 
-                Long instrumentId,
+        String tradingAccountName,
 
-                String instrumentSymbol,
+        Long instrumentId,
 
-                String instrumentName,
+        String instrumentSymbol,
 
-                String currency,
+        String instrumentName,
 
-                BigDecimal quantity,
+        String currency,
 
-                BigDecimal purchasePrice,
+        BigDecimal quantity,
 
-                BigDecimal purchaseCommission,
+        BigDecimal purchasePrice,
 
-                BigDecimal purchaseCommissionRate,
+        BigDecimal purchaseCommission,
 
-                BigDecimal expectedPurchaseCommission,
+        BigDecimal purchaseCommissionRate,
 
-                boolean purchaseCommissionValid,
+        BigDecimal expectedPurchaseCommission,
 
-                LocalDate purchaseDate,
+        boolean purchaseCommissionValid,
 
-                BigDecimal purchaseGrossAmount,
+        LocalDate purchaseDate,
 
-                BigDecimal purchaseTotalCost,
+        BigDecimal purchaseGrossAmount,
 
-                BigDecimal soldQuantity,
+        BigDecimal purchaseTotalCost,
 
-                BigDecimal remainingQuantity,
+        BigDecimal soldQuantity,
 
-                BigDecimal remainingCost,
+        BigDecimal remainingQuantity,
 
-                BigDecimal totalSaleAmount,
+        BigDecimal remainingCost,
 
-                BigDecimal totalSaleCommissions,
+        BigDecimal totalSaleAmount,
 
-                BigDecimal realizedProfit,
+        BigDecimal totalSaleCommissions,
 
-                TradeStatus status,
+        BigDecimal realizedProfit,
 
-                List<TradeSaleResponse> sales
+        TradeStatus status,
+
+        List<TradeSaleResponse> sales
 
 ) {
 }

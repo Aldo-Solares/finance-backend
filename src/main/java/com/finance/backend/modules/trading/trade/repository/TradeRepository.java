@@ -9,14 +9,14 @@ import java.util.Optional;
 public interface TradeRepository
                 extends JpaRepository<Trade, Long> {
 
-        List<Trade> findByTradingAccountUserEmailIgnoreCaseOrderByPurchaseDateDescTradeIdDesc(
+        List<Trade> findByUserTradingAccountUserEmailIgnoreCaseOrderByPurchaseDateDescTradeIdDesc(
                         String email);
 
-        List<Trade> findByTradingAccountTradingAccountIdAndTradingAccountUserEmailIgnoreCaseOrderByPurchaseDateDescTradeIdDesc(
-                        Long tradingAccountId,
+        List<Trade> findByUserTradingAccountUserTradingAccountIdAndUserTradingAccountUserEmailIgnoreCaseOrderByPurchaseDateDescTradeIdDesc(
+                        Long userTradingAccountId,
                         String email);
 
-        Optional<Trade> findByTradeIdAndTradingAccountUserEmailIgnoreCase(
+        Optional<Trade> findByTradeIdAndUserTradingAccountUserEmailIgnoreCase(
                         Long tradeId,
                         String email);
 }

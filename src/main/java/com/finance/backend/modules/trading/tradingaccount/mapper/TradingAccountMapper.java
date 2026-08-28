@@ -4,49 +4,58 @@ import com.finance.backend.modules.trading.tradingaccount.dto.CreateTradingAccou
 import com.finance.backend.modules.trading.tradingaccount.dto.TradingAccountResponse;
 import com.finance.backend.modules.trading.tradingaccount.dto.UpdateTradingAccountRequest;
 import com.finance.backend.modules.trading.tradingaccount.model.TradingAccount;
-import com.finance.backend.modules.user.model.User;
 
 public final class TradingAccountMapper {
 
-    private TradingAccountMapper() {
-    }
+        private TradingAccountMapper() {
+        }
 
-    public static TradingAccount toEntity(
-            CreateTradingAccountRequest request,
-            User user) {
+        // ===================
+        // CREATE REQUEST
+        // ===================
 
-        TradingAccount tradingAccount = new TradingAccount();
+        public static TradingAccount toEntity(
+                        CreateTradingAccountRequest request) {
 
-        tradingAccount.setUser(
-                user);
+                TradingAccount tradingAccount = new TradingAccount();
 
-        tradingAccount.setName(
-                request.name());
+                tradingAccount.setInstitution(request.institution());
+                tradingAccount.setName(request.name());
+                tradingAccount.setAccountType(request.accountType());
+                tradingAccount.setCurrency(request.currency());
+                tradingAccount.setActive(request.active());
 
-        tradingAccount.setCurrency(
-                request.currency());
+                return tradingAccount;
+        }
 
-        return tradingAccount;
-    }
+        // ===================
+        // UPDATE REQUEST
+        // ===================
 
-    public static void updateEntity(
-            TradingAccount tradingAccount,
-            UpdateTradingAccountRequest request) {
+        public static void updateEntity(
+                        TradingAccount tradingAccount,
+                        UpdateTradingAccountRequest request) {
 
-        tradingAccount.setName(
-                request.name());
+                tradingAccount.setInstitution(request.institution());
+                tradingAccount.setName(request.name());
+                tradingAccount.setAccountType(request.accountType());
+                tradingAccount.setCurrency(request.currency());
+                tradingAccount.setActive(request.active());
+        }
 
-        tradingAccount.setCurrency(
-                request.currency());
-    }
+        // ===================
+        // RESPONSE
+        // ===================
 
-    public static TradingAccountResponse toResponse(
-            TradingAccount tradingAccount) {
+        public static TradingAccountResponse toResponse(
+                        TradingAccount tradingAccount) {
 
-        return new TradingAccountResponse(
-                tradingAccount.getTradingAccountId(),
-                tradingAccount.getUser().getUserId(),
-                tradingAccount.getName(),
-                tradingAccount.getCurrency());
-    }
+                return new TradingAccountResponse(
+                                tradingAccount.getTradingAccountId(),
+                                tradingAccount.getInstitution(),
+                                tradingAccount.getName(),
+                                tradingAccount.getAccountType(),
+                                tradingAccount.getCurrency(),
+                                tradingAccount.getActive());
+        }
 }

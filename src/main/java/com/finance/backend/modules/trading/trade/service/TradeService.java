@@ -1,5 +1,7 @@
 package com.finance.backend.modules.trading.trade.service;
 
+import com.finance.backend.exception.BadRequestException;
+import com.finance.backend.exception.ResourceNotFoundException;
 import com.finance.backend.modules.trading.instrument.model.Instrument;
 import com.finance.backend.modules.trading.instrument.repository.InstrumentRepository;
 import com.finance.backend.modules.trading.trade.dto.CreateTradeRequest;
@@ -10,8 +12,8 @@ import com.finance.backend.modules.trading.trade.model.Trade;
 import com.finance.backend.modules.trading.trade.repository.TradeRepository;
 import com.finance.backend.modules.trading.trade.utils.TradeCalculation;
 import com.finance.backend.modules.trading.tradingaccount.model.TradingAccount;
-import com.finance.backend.modules.trading.tradingaccount.repository.TradingAccountRepository;
-import jakarta.persistence.EntityNotFoundException;
+import com.finance.backend.modules.trading.usertradingaccount.model.UserTradingAccount;
+import com.finance.backend.modules.trading.usertradingaccount.repository.UserTradingAccountRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,23 +24,29 @@ import java.util.List;
 public class TradeService {
 
         private final TradeRepository tradeRepository;
-        private final TradingAccountRepository tradingAccountRepository;
+        private final UserTradingAccountRepository userTradingAccountRepository;
         private final InstrumentRepository instrumentRepository;
 
         public TradeService(
                         TradeRepository tradeRepository,
-                        TradingAccountRepository tradingAccountRepository,
+                        UserTradingAccountRepository userTradingAccountRepository,
                         InstrumentRepository instrumentRepository) {
+
                 this.tradeRepository = tradeRepository;
-                this.tradingAccountRepository = tradingAccountRepository;
+                this.userTradingAccountRepository = userTradingAccountRepository;
                 this.instrumentRepository = instrumentRepository;
         }
+
+        // ===================
+        // QUERIES
+        // ===================
 
         @Transactional(readOnly = true)
         public List<TradeResponse> findAll(
                         String email) {
+
                 return tradeRepository
-                                .findByTradingAccountUserEmailIgnoreCaseOrderByPurchaseDateDescTradeIdDesc(
+                                .findByUserTradingAccountUserEmailIgnoreCaseOrderByPurchaseDateDescTradeIdDesc(
                                                 email)
                                 .stream()
                                 .map(TradeMapper::toResponse)
@@ -49,6 +57,7 @@ public class TradeService {
         public TradeResponse findById(
                         Long tradeId,
                         String email) {
+
                 return TradeMapper.toResponse(
                                 getEntity(
                                                 tradeId,
@@ -57,55 +66,59 @@ public class TradeService {
 
         @Transactional(readOnly = true)
         public List<TradeResponse> findByAccountId(
-                        Long tradingAccountId,
+                        Long userTradingAccountId,
                         String email) {
+
                 return tradeRepository
-                                .findByTradingAccountTradingAccountIdAndTradingAccountUserEmailIgnoreCaseOrderByPurchaseDateDescTradeIdDesc(
-                                                tradingAccountId,
+                                .findByUserTradingAccountUserTradingAccountIdAndUserTradingAccountUserEmailIgnoreCaseOrderByPurchaseDateDescTradeIdDesc(
+                                                userTradingAccountId,
                                                 email)
                                 .stream()
                                 .map(TradeMapper::toResponse)
                                 .toList();
         }
 
+        // ===================
+        // CREATE
+        // ===================
+
         @Transactional
         public TradeResponse create(
                         CreateTradeRequest request,
                         String email) {
-                TradingAccount account = getTradingAccount(
-                                request.tradingAccountId(),
+
+                UserTradingAccount userTradingAccount = getUserTradingAccount(
+                                request.userTradingAccountId(),
                                 email);
 
                 Instrument instrument = getInstrument(
                                 request.instrumentId());
 
                 validateCurrency(
-                                account,
+                                userTradingAccount,
                                 instrument);
 
-                Trade trade = new Trade();
+                Trade trade = TradeMapper.toEntity(
+                                request,
+                                userTradingAccount,
+                                instrument);
 
-                trade.setTradingAccount(account);
-                trade.setInstrument(instrument);
-                trade.setQuantity(request.quantity());
-                trade.setPurchasePrice(
-                                request.purchasePrice());
-                trade.setPurchaseCommission(
-                                request.purchaseCommission());
-                trade.setPurchaseCommissionRate(
-                                request.purchaseCommissionRate());
-                trade.setPurchaseDate(
-                                request.purchaseDate());
+                Trade savedTrade = tradeRepository.save(trade);
 
                 return TradeMapper.toResponse(
-                                tradeRepository.save(trade));
+                                savedTrade);
         }
+
+        // ===================
+        // UPDATE
+        // ===================
 
         @Transactional
         public TradeResponse update(
                         Long tradeId,
                         UpdateTradeRequest request,
                         String email) {
+
                 Trade trade = getEntity(
                                 tradeId,
                                 email);
@@ -114,43 +127,44 @@ public class TradeService {
                                 trade);
 
                 if (request.quantity()
-                                .compareTo(
-                                                soldQuantity) < 0) {
-                        throw new IllegalArgumentException(
+                                .compareTo(soldQuantity) < 0) {
+
+                        throw new BadRequestException(
                                         "Trade quantity cannot be lower than already sold quantity");
                 }
 
-                TradingAccount account = getTradingAccount(
-                                request.tradingAccountId(),
+                UserTradingAccount userTradingAccount = getUserTradingAccount(
+                                request.userTradingAccountId(),
                                 email);
 
                 Instrument instrument = getInstrument(
                                 request.instrumentId());
 
                 validateCurrency(
-                                account,
+                                userTradingAccount,
                                 instrument);
 
-                trade.setTradingAccount(account);
-                trade.setInstrument(instrument);
-                trade.setQuantity(request.quantity());
-                trade.setPurchasePrice(
-                                request.purchasePrice());
-                trade.setPurchaseCommission(
-                                request.purchaseCommission());
-                trade.setPurchaseCommissionRate(
-                                request.purchaseCommissionRate());
-                trade.setPurchaseDate(
-                                request.purchaseDate());
+                TradeMapper.updateEntity(
+                                trade,
+                                request,
+                                userTradingAccount,
+                                instrument);
+
+                Trade savedTrade = tradeRepository.save(trade);
 
                 return TradeMapper.toResponse(
-                                tradeRepository.save(trade));
+                                savedTrade);
         }
+
+        // ===================
+        // DELETE
+        // ===================
 
         @Transactional
         public void delete(
                         Long tradeId,
                         String email) {
+
                 Trade trade = getEntity(
                                 tradeId,
                                 email);
@@ -158,48 +172,71 @@ public class TradeService {
                 tradeRepository.delete(trade);
         }
 
+        // ===================
+        // ENTITY
+        // ===================
+
         @Transactional(readOnly = true)
         public Trade getEntity(
                         Long tradeId,
                         String email) {
+
                 return tradeRepository
-                                .findByTradeIdAndTradingAccountUserEmailIgnoreCase(
+                                .findByTradeIdAndUserTradingAccountUserEmailIgnoreCase(
                                                 tradeId,
                                                 email)
                                 .orElseThrow(
-                                                () -> new EntityNotFoundException(
-                                                                "Trade not found"));
+                                                () -> new ResourceNotFoundException(
+                                                                "Trade no encontrado"));
         }
 
-        private TradingAccount getTradingAccount(
-                        Long tradingAccountId,
+        // ===================
+        // USER TRADING ACCOUNT
+        // ===================
+
+        private UserTradingAccount getUserTradingAccount(
+                        Long userTradingAccountId,
                         String email) {
-                return tradingAccountRepository
-                                .findByTradingAccountIdAndUserEmailIgnoreCase(
-                                                tradingAccountId,
+
+                return userTradingAccountRepository
+                                .findByUserTradingAccountIdAndUserEmailIgnoreCase(
+                                                userTradingAccountId,
                                                 email)
                                 .orElseThrow(
-                                                () -> new EntityNotFoundException(
-                                                                "Trading account not found"));
+                                                () -> new ResourceNotFoundException(
+                                                                "Cuenta de trading del usuario no encontrada"));
         }
+
+        // ===================
+        // INSTRUMENT
+        // ===================
 
         private Instrument getInstrument(
                         Long instrumentId) {
+
                 return instrumentRepository
                                 .findById(instrumentId)
                                 .orElseThrow(
-                                                () -> new EntityNotFoundException(
-                                                                "Instrument not found"));
+                                                () -> new ResourceNotFoundException(
+                                                                "Instrumento no encontrado"));
         }
 
+        // ===================
+        // VALIDATIONS
+        // ===================
+
         private void validateCurrency(
-                        TradingAccount account,
+                        UserTradingAccount userTradingAccount,
                         Instrument instrument) {
-                if (!account.getCurrency()
+
+                TradingAccount tradingAccount = userTradingAccount.getTradingAccount();
+
+                if (!tradingAccount.getCurrency()
                                 .equalsIgnoreCase(
                                                 instrument.getCurrency())) {
-                        throw new IllegalArgumentException(
-                                        "Trading account and instrument must use the same currency");
+
+                        throw new BadRequestException(
+                                        "La cuenta de trading y el instrumento deben utilizar la misma moneda");
                 }
         }
 }
