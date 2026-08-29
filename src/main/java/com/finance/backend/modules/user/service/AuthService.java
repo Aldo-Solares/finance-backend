@@ -13,10 +13,13 @@ import com.finance.backend.modules.user.dto.auth.RegisterResponse;
 import com.finance.backend.modules.user.dto.auth.ResendVerificationRequest;
 import com.finance.backend.modules.user.dto.auth.ResetPasswordRequest;
 import com.finance.backend.modules.user.dto.auth.VerifyEmailRequest;
+import com.finance.backend.modules.user.repository.UserRepository;
+import com.finance.backend.modules.user.repository.UserSettingsRepository;
 
 import com.finance.backend.modules.user.mapper.UserMapper;
 import com.finance.backend.modules.user.model.Role;
 import com.finance.backend.modules.user.model.User;
+import com.finance.backend.modules.user.model.UserSettings;
 import com.finance.backend.modules.user.repository.UserRepository;
 
 import com.finance.backend.security.JwtService;
@@ -44,17 +47,19 @@ public class AuthService {
         private final JwtService jwtService;
         private final CustomUserDetailsService customUserDetailsService;
         private final UserEmailService userEmailService;
-
+        private final UserSettingsRepository userSettingsRepository;
         private final SecureRandom secureRandom = new SecureRandom();
 
         public AuthService(
                         UserRepository userRepository,
+                        UserSettingsRepository userSettingsRepository,
                         PasswordEncoder passwordEncoder,
                         JwtService jwtService,
                         CustomUserDetailsService customUserDetailsService,
                         UserEmailService userEmailService) {
 
                 this.userRepository = userRepository;
+                this.userSettingsRepository = userSettingsRepository;
                 this.passwordEncoder = passwordEncoder;
                 this.jwtService = jwtService;
                 this.customUserDetailsService = customUserDetailsService;
@@ -105,6 +110,13 @@ public class AuthService {
                                                 .plusHours(24));
 
                 User savedUser = userRepository.save(user);
+
+                UserSettings userSettings = new UserSettings();
+
+                userSettings.setUserId(savedUser.getUserId());
+                userSettings.setStatementCutoffReminder(false);
+
+                userSettingsRepository.save(userSettings);
 
                 userEmailService.sendVerificationEmail(
                                 savedUser.getEmail(),
