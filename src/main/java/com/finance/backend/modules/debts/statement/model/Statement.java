@@ -46,7 +46,6 @@ public class Statement {
     @Column(nullable = false)
     private Boolean paid = false;
 
-    @Column(columnDefinition = "TEXT")
     private String notes;
 
     public Statement() {

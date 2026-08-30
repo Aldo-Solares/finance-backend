@@ -22,17 +22,14 @@ public final class StatementEntryMapper {
         entry.setStatement(statement);
         entry.setConcept(concept);
         entry.setDebtor(request.debtor());
-        entry.setDescription(request.description());
+        entry.setSpecification(request.specification());
+        entry.setNotes(request.notes());
         entry.setEntryType(request.entryType());
         entry.setDate(request.date());
         entry.setAmount(request.amount());
         entry.setPaid(request.paid());
         entry.setMsiCurrent(request.msiCurrent());
         entry.setMsiTotal(request.msiTotal());
-        entry.setPurchaseAmount(request.purchaseAmount());
-        entry.setRemainingMsi(request.remainingMsi());
-        entry.setRemainingMsiAmount(request.remainingMsiAmount());
-
         return entry;
     }
 
@@ -45,16 +42,14 @@ public final class StatementEntryMapper {
         entry.setStatement(statement);
         entry.setConcept(concept);
         entry.setDebtor(request.debtor());
-        entry.setDescription(request.description());
+        entry.setSpecification(request.specification());
+        entry.setNotes(request.notes());
         entry.setEntryType(request.entryType());
         entry.setDate(request.date());
         entry.setAmount(request.amount());
         entry.setPaid(request.paid());
         entry.setMsiCurrent(request.msiCurrent());
         entry.setMsiTotal(request.msiTotal());
-        entry.setPurchaseAmount(request.purchaseAmount());
-        entry.setRemainingMsi(request.remainingMsi());
-        entry.setRemainingMsiAmount(request.remainingMsiAmount());
     }
 
     public static StatementEntryResponse toResponse(
@@ -66,7 +61,8 @@ public final class StatementEntryMapper {
                 entry.getConcept().getConceptId(),
                 entry.getConcept().getName(),
                 entry.getDebtor(),
-                entry.getDescription(),
+                entry.getSpecification(),
+                entry.getNotes(),
                 entry.getEntryType(),
                 entry.getDate(),
                 entry.getAmount(),

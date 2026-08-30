@@ -27,8 +27,10 @@ public class StatementEntry {
     @Column(name = "debtor", nullable = false)
     private String debtor;
 
-    @Column(name = "description", columnDefinition = "TEXT")
-    private String description;
+    @Column(name = "specification")
+    private String specification;
+
+    private String notes;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "entry_type", nullable = false)
@@ -90,12 +92,20 @@ public class StatementEntry {
         this.debtor = debtor;
     }
 
-    public String getDescription() {
-        return description;
+    public String getSpecification() {
+        return specification;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setSpecification(String specification) {
+        this.specification = specification;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 
     public StatementEntryType getEntryType() {

@@ -20,8 +20,6 @@ import com.finance.backend.modules.user.mapper.UserMapper;
 import com.finance.backend.modules.user.model.Role;
 import com.finance.backend.modules.user.model.User;
 import com.finance.backend.modules.user.model.UserSettings;
-import com.finance.backend.modules.user.repository.UserRepository;
-
 import com.finance.backend.security.JwtService;
 import com.finance.backend.utils.email.UserEmailService;
 

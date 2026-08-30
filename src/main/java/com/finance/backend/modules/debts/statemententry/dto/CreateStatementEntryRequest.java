@@ -9,32 +9,15 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record CreateStatementEntryRequest(
-
-                @NotNull Long statementId,
-
-                @NotNull Long conceptId,
-
-                @NotBlank String debtor,
-
-                String description,
-
-                @NotNull StatementEntryType entryType,
-
-                LocalDate date,
-
-                @NotNull @Positive BigDecimal amount,
-
-                @NotNull Boolean paid,
-
-                Integer msiCurrent,
-
-                Integer msiTotal,
-
-                BigDecimal purchaseAmount,
-
-                Integer remainingMsi,
-
-                BigDecimal remainingMsiAmount
-
-) {
+        @NotNull Long statementId,
+        @NotNull Long conceptId,
+        @NotBlank String debtor,
+        String specification,
+        String notes,
+        @NotNull StatementEntryType entryType,
+        LocalDate date,
+        @NotNull @Positive BigDecimal amount,
+        @NotNull Boolean paid,
+        Integer msiCurrent,
+        Integer msiTotal) {
 }

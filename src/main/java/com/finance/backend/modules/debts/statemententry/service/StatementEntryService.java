@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 @Service
@@ -38,6 +39,10 @@ public class StatementEntryService {
                 this.conceptRepository = conceptRepository;
         }
 
+        // ===================
+        // FIND ALL
+        // ===================
+
         @Transactional(readOnly = true)
         public List<StatementEntryResponse> findAll(
                         String email) {
@@ -50,6 +55,10 @@ public class StatementEntryService {
                                 .toList();
         }
 
+        // ===================
+        // FIND BY ID
+        // ===================
+
         @Transactional(readOnly = true)
         public StatementEntryResponse findById(
                         Long entryId,
@@ -60,6 +69,10 @@ public class StatementEntryService {
                                                 entryId,
                                                 email));
         }
+
+        // ===================
+        // FIND BY STATEMENT
+        // ===================
 
         @Transactional(readOnly = true)
         public List<StatementEntryResponse> findByStatementId(
@@ -79,6 +92,10 @@ public class StatementEntryService {
                                 .toList();
         }
 
+        // ===================
+        // FIND BY DEBTOR
+        // ===================
+
         @Transactional(readOnly = true)
         public List<StatementEntryResponse> findByDebtor(
                         String debtor,
@@ -92,6 +109,10 @@ public class StatementEntryService {
                                 .map(StatementEntryMapper::toResponse)
                                 .toList();
         }
+
+        // ===================
+        // FIND BY STATEMENT AND DEBTOR
+        // ===================
 
         @Transactional(readOnly = true)
         public List<StatementEntryResponse> findByStatementIdAndDebtor(
@@ -113,6 +134,10 @@ public class StatementEntryService {
                                 .toList();
         }
 
+        // ===================
+        // CREATE
+        // ===================
+
         public StatementEntryResponse create(
                         CreateStatementEntryRequest request,
                         String email) {
@@ -120,10 +145,7 @@ public class StatementEntryService {
                 validateEntryType(
                                 request.entryType(),
                                 request.msiCurrent(),
-                                request.msiTotal(),
-                                request.purchaseAmount(),
-                                request.remainingMsi(),
-                                request.remainingMsiAmount());
+                                request.msiTotal());
 
                 Statement statement = getOwnedStatement(
                                 request.statementId(),
@@ -137,12 +159,19 @@ public class StatementEntryService {
                                 statement,
                                 concept);
 
+                calculateMsiValues(
+                                entry);
+
                 StatementEntry savedEntry = statementEntryRepository.save(
                                 entry);
 
                 return StatementEntryMapper.toResponse(
                                 savedEntry);
         }
+
+        // ===================
+        // UPDATE
+        // ===================
 
         public StatementEntryResponse update(
                         Long entryId,
@@ -152,10 +181,7 @@ public class StatementEntryService {
                 validateEntryType(
                                 request.entryType(),
                                 request.msiCurrent(),
-                                request.msiTotal(),
-                                request.purchaseAmount(),
-                                request.remainingMsi(),
-                                request.remainingMsiAmount());
+                                request.msiTotal());
 
                 StatementEntry entry = getOwnedEntry(
                                 entryId,
@@ -174,12 +200,19 @@ public class StatementEntryService {
                                 statement,
                                 concept);
 
+                calculateMsiValues(
+                                entry);
+
                 StatementEntry updatedEntry = statementEntryRepository.save(
                                 entry);
 
                 return StatementEntryMapper.toResponse(
                                 updatedEntry);
         }
+
+        // ===================
+        // DELETE
+        // ===================
 
         public void delete(
                         Long entryId,
@@ -193,28 +226,85 @@ public class StatementEntryService {
                                 entry);
         }
 
+        // ===================
+        // VALIDATE ENTRY TYPE
+        // ===================
+
         private void validateEntryType(
                         StatementEntryType entryType,
                         Integer msiCurrent,
-                        Integer msiTotal,
-                        BigDecimal purchaseAmount,
-                        Integer remainingMsi,
-                        BigDecimal remainingMsiAmount) {
+                        Integer msiTotal) {
 
                 if (entryType != StatementEntryType.RECURRING) {
                         return;
                 }
 
                 if (msiCurrent != null
-                                || msiTotal != null
-                                || purchaseAmount != null
-                                || remainingMsi != null
-                                || remainingMsiAmount != null) {
+                                || msiTotal != null) {
 
                         throw new IllegalArgumentException(
                                         "Los movimientos recurrentes no pueden tener información MSI");
                 }
         }
+
+        // ===================
+        // CALCULATE MSI
+        // ===================
+
+        private void calculateMsiValues(
+                        StatementEntry entry) {
+
+                if (entry.getEntryType() != StatementEntryType.PURCHASE
+                                || entry.getMsiCurrent() == null
+                                || entry.getMsiTotal() == null) {
+
+                        entry.setPurchaseAmount(null);
+                        entry.setRemainingMsi(null);
+                        entry.setRemainingMsiAmount(null);
+
+                        return;
+                }
+
+                int msiCurrent = entry.getMsiCurrent();
+                int msiTotal = entry.getMsiTotal();
+
+                if (msiCurrent < 1
+                                || msiTotal < 1
+                                || msiCurrent > msiTotal) {
+
+                        throw new IllegalArgumentException(
+                                        "La mensualidad MSI debe estar entre 1 y el total de meses");
+                }
+
+                BigDecimal purchaseAmount = entry.getAmount()
+                                .multiply(
+                                                BigDecimal.valueOf(msiTotal))
+                                .setScale(
+                                                2,
+                                                RoundingMode.HALF_UP);
+
+                int remainingMsi = msiTotal - msiCurrent + 1;
+
+                BigDecimal remainingMsiAmount = entry.getAmount()
+                                .multiply(
+                                                BigDecimal.valueOf(remainingMsi))
+                                .setScale(
+                                                2,
+                                                RoundingMode.HALF_UP);
+
+                entry.setPurchaseAmount(
+                                purchaseAmount);
+
+                entry.setRemainingMsi(
+                                remainingMsi);
+
+                entry.setRemainingMsiAmount(
+                                remainingMsiAmount);
+        }
+
+        // ===================
+        // OWNED ENTRY
+        // ===================
 
         private StatementEntry getOwnedEntry(
                         Long entryId,
@@ -229,6 +319,10 @@ public class StatementEntryService {
                                                                 "Movimiento no encontrado"));
         }
 
+        // ===================
+        // OWNED STATEMENT
+        // ===================
+
         private Statement getOwnedStatement(
                         Long statementId,
                         String email) {
@@ -241,6 +335,10 @@ public class StatementEntryService {
                                                 () -> new ResourceNotFoundException(
                                                                 "Estado de cuenta no encontrado"));
         }
+
+        // ===================
+        // CONCEPT
+        // ===================
 
         private Concept getConcept(
                         Long conceptId) {

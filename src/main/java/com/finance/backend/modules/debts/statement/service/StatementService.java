@@ -373,8 +373,11 @@ public class StatementService {
                         newEntry.setDebtor(
                                         previousEntry.getDebtor());
 
-                        newEntry.setDescription(
-                                        previousEntry.getDescription());
+                        newEntry.setSpecification(
+                                        previousEntry.getSpecification());
+
+                        newEntry.setNotes(
+                                        previousEntry.getNotes());
 
                         newEntry.setEntryType(
                                         previousEntry.getEntryType());
