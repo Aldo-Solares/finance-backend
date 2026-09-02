@@ -1,3 +1,5 @@
+// modules/trading/trade/mapper/TradeMapper.java
+
 package com.finance.backend.modules.trading.trade.mapper;
 
 import com.finance.backend.modules.trading.instrument.model.Instrument;
@@ -91,7 +93,7 @@ public final class TradeMapper {
 
                                 instrument.getName(),
 
-                                tradingAccount.getCurrency(),
+                                tradingAccount.getCurrency().getCode(),
 
                                 trade.getQuantity(),
 

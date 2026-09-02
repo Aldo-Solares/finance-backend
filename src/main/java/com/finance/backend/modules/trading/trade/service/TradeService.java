@@ -42,8 +42,7 @@ public class TradeService {
         // ===================
 
         @Transactional(readOnly = true)
-        public List<TradeResponse> findAll(
-                        String email) {
+        public List<TradeResponse> findAll(String email) {
 
                 return tradeRepository
                                 .findByUserTradingAccountUserEmailIgnoreCaseOrderByPurchaseDateDescTradeIdDesc(
@@ -123,8 +122,7 @@ public class TradeService {
                                 tradeId,
                                 email);
 
-                BigDecimal soldQuantity = TradeCalculation.getSoldQuantity(
-                                trade);
+                BigDecimal soldQuantity = TradeCalculation.getSoldQuantity(trade);
 
                 if (request.quantity()
                                 .compareTo(soldQuantity) < 0) {
@@ -232,8 +230,9 @@ public class TradeService {
                 TradingAccount tradingAccount = userTradingAccount.getTradingAccount();
 
                 if (!tradingAccount.getCurrency()
+                                .getCode()
                                 .equalsIgnoreCase(
-                                                instrument.getCurrency())) {
+                                                instrument.getCurrency().getCode())) {
 
                         throw new BadRequestException(
                                         "La cuenta de trading y el instrumento deben utilizar la misma moneda");

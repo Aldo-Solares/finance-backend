@@ -2,6 +2,8 @@ package com.finance.backend.modules.trading.instrument.service;
 
 import com.finance.backend.exception.ConflictException;
 import com.finance.backend.exception.ResourceNotFoundException;
+import com.finance.backend.modules.catalogs.currency.model.Currency;
+import com.finance.backend.modules.catalogs.currency.repository.CurrencyRepository;
 import com.finance.backend.modules.trading.instrument.dto.CreateInstrumentRequest;
 import com.finance.backend.modules.trading.instrument.dto.InstrumentResponse;
 import com.finance.backend.modules.trading.instrument.dto.UpdateInstrumentRequest;
@@ -18,14 +20,23 @@ import java.util.List;
 public class InstrumentService {
 
         private final InstrumentRepository instrumentRepository;
+        private final CurrencyRepository currencyRepository;
 
         public InstrumentService(
-                        InstrumentRepository instrumentRepository) {
+                        InstrumentRepository instrumentRepository,
+                        CurrencyRepository currencyRepository) {
+
                 this.instrumentRepository = instrumentRepository;
+                this.currencyRepository = currencyRepository;
         }
+
+        // ===================
+        // QUERIES
+        // ===================
 
         @Transactional(readOnly = true)
         public List<InstrumentResponse> findAll() {
+
                 return instrumentRepository
                                 .findAll()
                                 .stream()
@@ -41,17 +52,27 @@ public class InstrumentService {
                                 getEntity(instrumentId));
         }
 
+        // ===================
+        // CREATE
+        // ===================
+
         public InstrumentResponse create(
                         CreateInstrumentRequest request) {
 
                 if (instrumentRepository
                                 .existsBySymbolIgnoreCase(
                                                 request.symbol())) {
+
                         throw new ConflictException(
                                         "Ya existe un instrumento con ese símbolo");
                 }
 
-                Instrument instrument = InstrumentMapper.toEntity(request);
+                Currency currency = getCurrency(
+                                request.currencyId());
+
+                Instrument instrument = InstrumentMapper.toEntity(
+                                request,
+                                currency);
 
                 Instrument savedInstrument = instrumentRepository.save(
                                 instrument);
@@ -59,6 +80,10 @@ public class InstrumentService {
                 return InstrumentMapper.toResponse(
                                 savedInstrument);
         }
+
+        // ===================
+        // UPDATE
+        // ===================
 
         public InstrumentResponse update(
                         Long instrumentId,
@@ -78,9 +103,13 @@ public class InstrumentService {
                                                                         "Ya existe un instrumento con ese símbolo");
                                                 });
 
+                Currency currency = getCurrency(
+                                request.currencyId());
+
                 InstrumentMapper.updateEntity(
                                 instrument,
-                                request);
+                                request,
+                                currency);
 
                 Instrument updatedInstrument = instrumentRepository.save(
                                 instrument);
@@ -89,6 +118,11 @@ public class InstrumentService {
                                 updatedInstrument);
         }
 
+        // ===================
+        // ENTITY
+        // ===================
+
+        @Transactional(readOnly = true)
         public Instrument getEntity(
                         Long instrumentId) {
 
@@ -97,5 +131,20 @@ public class InstrumentService {
                                 .orElseThrow(
                                                 () -> new ResourceNotFoundException(
                                                                 "Instrumento no encontrado"));
+        }
+
+        // ===================
+        // CURRENCY
+        // ===================
+
+        @Transactional(readOnly = true)
+        private Currency getCurrency(
+                        Long currencyId) {
+
+                return currencyRepository
+                                .findById(currencyId)
+                                .orElseThrow(
+                                                () -> new ResourceNotFoundException(
+                                                                "Moneda no encontrada"));
         }
 }

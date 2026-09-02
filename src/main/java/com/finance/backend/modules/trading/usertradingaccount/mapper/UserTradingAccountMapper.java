@@ -1,3 +1,5 @@
+// @/modules/trading/usertradingaccount/mapper/UserTradingAccountMapper.java
+
 package com.finance.backend.modules.trading.usertradingaccount.mapper;
 
 import com.finance.backend.modules.trading.tradingaccount.model.TradingAccount;
@@ -25,9 +27,6 @@ public final class UserTradingAccountMapper {
 
         userTradingAccount.setUser(user);
         userTradingAccount.setTradingAccount(tradingAccount);
-        userTradingAccount.setAlias(request.alias());
-        userTradingAccount.setAccountNumber(request.accountNumber());
-        userTradingAccount.setActive(request.active());
 
         return userTradingAccount;
     }
@@ -42,9 +41,6 @@ public final class UserTradingAccountMapper {
             TradingAccount tradingAccount) {
 
         userTradingAccount.setTradingAccount(tradingAccount);
-        userTradingAccount.setAlias(request.alias());
-        userTradingAccount.setAccountNumber(request.accountNumber());
-        userTradingAccount.setActive(request.active());
     }
 
     // ===================
@@ -61,10 +57,7 @@ public final class UserTradingAccountMapper {
                 tradingAccount.getTradingAccountId(),
                 tradingAccount.getInstitution(),
                 tradingAccount.getName(),
-                tradingAccount.getAccountType(),
-                tradingAccount.getCurrency(),
-                userTradingAccount.getAlias(),
-                userTradingAccount.getAccountNumber(),
-                userTradingAccount.getActive());
+                tradingAccount.getCurrency().getCurrencyId(),
+                tradingAccount.getCurrency().getCode());
     }
 }

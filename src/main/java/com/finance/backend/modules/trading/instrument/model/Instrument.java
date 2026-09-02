@@ -1,6 +1,15 @@
 package com.finance.backend.modules.trading.instrument.model;
 
-import jakarta.persistence.*;
+import com.finance.backend.modules.catalogs.currency.model.Currency;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "instruments")
@@ -17,15 +26,16 @@ public class Instrument {
     @Column(nullable = false)
     private String name;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private InstrumentType type;
-
-    @Column(nullable = false)
-    private String currency;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "currency_id", nullable = false)
+    private Currency currency;
 
     public Instrument() {
     }
+
+    // ===================
+    // ID
+    // ===================
 
     public Long getInstrumentId() {
         return instrumentId;
@@ -35,6 +45,10 @@ public class Instrument {
         this.instrumentId = instrumentId;
     }
 
+    // ===================
+    // SYMBOL
+    // ===================
+
     public String getSymbol() {
         return symbol;
     }
@@ -42,6 +56,10 @@ public class Instrument {
     public void setSymbol(String symbol) {
         this.symbol = symbol;
     }
+
+    // ===================
+    // NAME
+    // ===================
 
     public String getName() {
         return name;
@@ -51,19 +69,15 @@ public class Instrument {
         this.name = name;
     }
 
-    public InstrumentType getType() {
-        return type;
-    }
+    // ===================
+    // CURRENCY
+    // ===================
 
-    public void setType(InstrumentType type) {
-        this.type = type;
-    }
-
-    public String getCurrency() {
+    public Currency getCurrency() {
         return currency;
     }
 
-    public void setCurrency(String currency) {
+    public void setCurrency(Currency currency) {
         this.currency = currency;
     }
 }

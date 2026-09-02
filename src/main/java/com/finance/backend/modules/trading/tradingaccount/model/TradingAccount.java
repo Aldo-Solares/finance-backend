@@ -1,5 +1,6 @@
 package com.finance.backend.modules.trading.tradingaccount.model;
 
+import com.finance.backend.modules.catalogs.currency.model.Currency;
 import jakarta.persistence.*;
 
 @Entity
@@ -17,17 +18,19 @@ public class TradingAccount {
     @Column(nullable = false)
     private String name;
 
-    @Column(name = "account_type", nullable = false)
-    private String accountType;
-
-    @Column(nullable = false)
-    private String currency;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "currency_id", nullable = false)
+    private Currency currency;
 
     @Column(nullable = false)
     private Boolean active;
 
     public TradingAccount() {
     }
+
+    // ===================
+    // ID
+    // ===================
 
     public Long getTradingAccountId() {
         return tradingAccountId;
@@ -37,6 +40,10 @@ public class TradingAccount {
         this.tradingAccountId = tradingAccountId;
     }
 
+    // ===================
+    // INSTITUTION
+    // ===================
+
     public String getInstitution() {
         return institution;
     }
@@ -44,6 +51,10 @@ public class TradingAccount {
     public void setInstitution(String institution) {
         this.institution = institution;
     }
+
+    // ===================
+    // NAME
+    // ===================
 
     public String getName() {
         return name;
@@ -53,21 +64,21 @@ public class TradingAccount {
         this.name = name;
     }
 
-    public String getAccountType() {
-        return accountType;
-    }
+    // ===================
+    // CURRENCY
+    // ===================
 
-    public void setAccountType(String accountType) {
-        this.accountType = accountType;
-    }
-
-    public String getCurrency() {
+    public Currency getCurrency() {
         return currency;
     }
 
-    public void setCurrency(String currency) {
+    public void setCurrency(Currency currency) {
         this.currency = currency;
     }
+
+    // ===================
+    // ACTIVE
+    // ===================
 
     public Boolean getActive() {
         return active;

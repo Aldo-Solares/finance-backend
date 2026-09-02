@@ -1,5 +1,6 @@
 package com.finance.backend.modules.trading.tradingaccount.mapper;
 
+import com.finance.backend.modules.catalogs.currency.model.Currency;
 import com.finance.backend.modules.trading.tradingaccount.dto.CreateTradingAccountRequest;
 import com.finance.backend.modules.trading.tradingaccount.dto.TradingAccountResponse;
 import com.finance.backend.modules.trading.tradingaccount.dto.UpdateTradingAccountRequest;
@@ -15,14 +16,14 @@ public final class TradingAccountMapper {
         // ===================
 
         public static TradingAccount toEntity(
-                        CreateTradingAccountRequest request) {
+                        CreateTradingAccountRequest request,
+                        Currency currency) {
 
                 TradingAccount tradingAccount = new TradingAccount();
 
                 tradingAccount.setInstitution(request.institution());
                 tradingAccount.setName(request.name());
-                tradingAccount.setAccountType(request.accountType());
-                tradingAccount.setCurrency(request.currency());
+                tradingAccount.setCurrency(currency);
                 tradingAccount.setActive(request.active());
 
                 return tradingAccount;
@@ -34,12 +35,12 @@ public final class TradingAccountMapper {
 
         public static void updateEntity(
                         TradingAccount tradingAccount,
-                        UpdateTradingAccountRequest request) {
+                        UpdateTradingAccountRequest request,
+                        Currency currency) {
 
                 tradingAccount.setInstitution(request.institution());
                 tradingAccount.setName(request.name());
-                tradingAccount.setAccountType(request.accountType());
-                tradingAccount.setCurrency(request.currency());
+                tradingAccount.setCurrency(currency);
                 tradingAccount.setActive(request.active());
         }
 
@@ -50,12 +51,15 @@ public final class TradingAccountMapper {
         public static TradingAccountResponse toResponse(
                         TradingAccount tradingAccount) {
 
+                Currency currency = tradingAccount.getCurrency();
+
                 return new TradingAccountResponse(
                                 tradingAccount.getTradingAccountId(),
                                 tradingAccount.getInstitution(),
                                 tradingAccount.getName(),
-                                tradingAccount.getAccountType(),
-                                tradingAccount.getCurrency(),
+                                currency.getCurrencyId(),
+                                currency.getCode(),
+                                currency.getSymbol(),
                                 tradingAccount.getActive());
         }
 }

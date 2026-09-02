@@ -4,16 +4,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record CreateTradingAccountRequest(
-
         @NotBlank String institution,
 
         @NotBlank String name,
 
-        @NotBlank String accountType,
+        @NotNull Long currencyId,
 
-        @NotBlank String currency,
-
-        @NotNull Boolean active
-
-) {
+        @NotNull Boolean active) {
 }

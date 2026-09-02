@@ -1,6 +1,10 @@
+// modules/trading/tradingaccount/service/TradingAccountService.java
+
 package com.finance.backend.modules.trading.tradingaccount.service;
 
 import com.finance.backend.exception.ResourceNotFoundException;
+import com.finance.backend.modules.catalogs.currency.model.Currency;
+import com.finance.backend.modules.catalogs.currency.repository.CurrencyRepository;
 import com.finance.backend.modules.trading.tradingaccount.dto.CreateTradingAccountRequest;
 import com.finance.backend.modules.trading.tradingaccount.dto.TradingAccountResponse;
 import com.finance.backend.modules.trading.tradingaccount.dto.UpdateTradingAccountRequest;
@@ -17,11 +21,14 @@ import java.util.List;
 public class TradingAccountService {
 
         private final TradingAccountRepository tradingAccountRepository;
+        private final CurrencyRepository currencyRepository;
 
         public TradingAccountService(
-                        TradingAccountRepository tradingAccountRepository) {
+                        TradingAccountRepository tradingAccountRepository,
+                        CurrencyRepository currencyRepository) {
 
                 this.tradingAccountRepository = tradingAccountRepository;
+                this.currencyRepository = currencyRepository;
         }
 
         // ===================
@@ -53,9 +60,15 @@ public class TradingAccountService {
         public TradingAccountResponse create(
                         CreateTradingAccountRequest request) {
 
-                TradingAccount tradingAccount = TradingAccountMapper.toEntity(request);
+                Currency currency = getCurrency(
+                                request.currencyId());
 
-                TradingAccount savedTradingAccount = tradingAccountRepository.save(tradingAccount);
+                TradingAccount tradingAccount = TradingAccountMapper.toEntity(
+                                request,
+                                currency);
+
+                TradingAccount savedTradingAccount = tradingAccountRepository.save(
+                                tradingAccount);
 
                 return TradingAccountMapper.toResponse(
                                 savedTradingAccount);
@@ -71,11 +84,16 @@ public class TradingAccountService {
 
                 TradingAccount tradingAccount = getEntity(tradingAccountId);
 
+                Currency currency = getCurrency(
+                                request.currencyId());
+
                 TradingAccountMapper.updateEntity(
                                 tradingAccount,
-                                request);
+                                request,
+                                currency);
 
-                TradingAccount savedTradingAccount = tradingAccountRepository.save(tradingAccount);
+                TradingAccount savedTradingAccount = tradingAccountRepository.save(
+                                tradingAccount);
 
                 return TradingAccountMapper.toResponse(
                                 savedTradingAccount);
@@ -107,5 +125,20 @@ public class TradingAccountService {
                                 .orElseThrow(
                                                 () -> new ResourceNotFoundException(
                                                                 "Cuenta de trading no encontrada"));
+        }
+
+        // ===================
+        // CURRENCY
+        // ===================
+
+        @Transactional(readOnly = true)
+        private Currency getCurrency(
+                        Long currencyId) {
+
+                return currencyRepository
+                                .findById(currencyId)
+                                .orElseThrow(
+                                                () -> new ResourceNotFoundException(
+                                                                "Moneda no encontrada"));
         }
 }
