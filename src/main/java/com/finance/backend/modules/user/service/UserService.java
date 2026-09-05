@@ -13,6 +13,8 @@ import com.finance.backend.modules.user.model.User;
 import com.finance.backend.modules.user.repository.UserRepository;
 import com.finance.backend.security.JwtService;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -27,18 +29,25 @@ public class UserService {
         private final PasswordEncoder passwordEncoder;
         private final JwtService jwtService;
         private final CustomUserDetailsService userDetailsService;
+        private final ProfileImageService profileImageService;
+        private final String backendUrl;
 
         public UserService(
                         UserRepository userRepository,
                         PasswordEncoder passwordEncoder,
                         JwtService jwtService,
-                        CustomUserDetailsService userDetailsService) {
+                        CustomUserDetailsService userDetailsService,
+                        ProfileImageService profileImageService,
+                        @Value("${app.backend-url:http://localhost:9000}") String backendUrl) {
 
                 this.userRepository = userRepository;
                 this.passwordEncoder = passwordEncoder;
                 this.jwtService = jwtService;
                 this.userDetailsService = userDetailsService;
+                this.profileImageService = profileImageService;
+                this.backendUrl = backendUrl.replaceAll("/$", "");
         }
+
         // ===================
         // CONSULTAS
         // ===================
@@ -48,7 +57,9 @@ public class UserService {
                 return userRepository
                                 .findAll()
                                 .stream()
-                                .map(UserMapper::toResponse)
+                                .map(user -> UserMapper.toResponse(
+                                                user,
+                                                backendUrl))
                                 .toList();
         }
 
@@ -56,7 +67,8 @@ public class UserService {
                         Long userId) {
 
                 return UserMapper.toResponse(
-                                getUserById(userId));
+                                getUserById(userId),
+                                backendUrl);
         }
 
         @Transactional(readOnly = true)
@@ -69,7 +81,9 @@ public class UserService {
                                                 () -> new ResourceNotFoundException(
                                                                 "Usuario no encontrado"));
 
-                return UserMapper.toResponse(user);
+                return UserMapper.toResponse(
+                                user,
+                                backendUrl);
         }
 
         // ===================
@@ -106,6 +120,7 @@ public class UserService {
                         currentUser.setEmailVerified(false);
 
                         currentUser.setEmailVerificationTokenHash(null);
+
                         currentUser.setEmailVerificationTokenExpiresAt(null);
                 }
 
@@ -121,8 +136,31 @@ public class UserService {
                 String token = jwtService.generateToken(userDetails);
 
                 return new UpdateUserResponse(
-                                UserMapper.toResponse(savedUser),
+                                UserMapper.toResponse(
+                                                savedUser,
+                                                backendUrl),
                                 token);
+        }
+
+        // ===================
+        // ACTUALIZACIÓN DE IMAGEN DE PERFIL
+        // ===================
+
+        @Transactional
+        public UserResponse updateProfileImage(
+                        String email,
+                        Long profileImageId) {
+
+                User currentUser = getUserByEmail(email);
+
+                currentUser.setProfileImage(
+                                profileImageService
+                                                .getActiveProfileImageById(
+                                                                profileImageId));
+
+                return UserMapper.toResponse(
+                                userRepository.save(currentUser),
+                                backendUrl);
         }
 
         // ===================
@@ -149,6 +187,7 @@ public class UserService {
                                                 request.newPassword()));
 
                 currentUser.setPasswordResetTokenHash(null);
+
                 currentUser.setPasswordResetTokenExpiresAt(null);
 
                 userRepository.save(currentUser);
@@ -168,7 +207,8 @@ public class UserService {
                                 request.role());
 
                 return UserMapper.toResponse(
-                                userRepository.save(user));
+                                userRepository.save(user),
+                                backendUrl);
         }
 
         // ===================
@@ -205,5 +245,15 @@ public class UserService {
                                 .orElseThrow(
                                                 () -> new ResourceNotFoundException(
                                                                 "Usuario no encontrado"));
+        }
+
+        @Transactional
+        public UserResponse removeProfileImage(String email) {
+                User user = userRepository.findByEmailIgnoreCase(email)
+                                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+                user.setProfileImage(null);
+
+                return UserMapper.toResponse(userRepository.save(user), backendUrl);
         }
 }

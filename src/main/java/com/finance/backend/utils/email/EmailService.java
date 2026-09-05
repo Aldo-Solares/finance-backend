@@ -1,5 +1,3 @@
-// @/utils/email/EmailService.java
-
 package com.finance.backend.utils.email;
 
 import jakarta.mail.MessagingException;

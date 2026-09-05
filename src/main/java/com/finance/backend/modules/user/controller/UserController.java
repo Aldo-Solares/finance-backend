@@ -10,6 +10,7 @@ import com.finance.backend.modules.user.service.UserService;
 
 import jakarta.validation.Valid;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -48,6 +49,18 @@ public class UserController {
                                 userService.updateMe(
                                                 authentication.getName(),
                                                 request));
+        }
+
+        @PatchMapping("/me/profile-image/{profileImageId}")
+        public ApiResponse<UserResponse> updateProfileImage(
+                        Authentication authentication,
+                        @PathVariable Long profileImageId) {
+
+                return ApiResponse.success(
+                                "Imagen de perfil actualizada",
+                                userService.updateProfileImage(
+                                                authentication.getName(),
+                                                profileImageId));
         }
 
         @PatchMapping("/me/password")
@@ -103,6 +116,17 @@ public class UserController {
 
                 return ApiResponse.success(
                                 "Usuario eliminado",
+                                null);
+        }
+
+        @DeleteMapping("/me/profile-image")
+        public ApiResponse<Void> removeProfileImage(
+                        Authentication authentication) {
+
+                userService.removeProfileImage(authentication.getName());
+
+                return ApiResponse.success(
+                                "Imagen de perfil eliminada",
                                 null);
         }
 }

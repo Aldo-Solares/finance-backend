@@ -1,13 +1,6 @@
 package com.finance.backend.modules.user.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
@@ -54,6 +47,14 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Role role;
+
+    // ===================
+    // IMAGEN DE PERFIL
+    // ===================
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "profile_image_id")
+    private ProfileImage profileImage;
 
     // ===================
     // VERIFICACIÓN DE EMAIL
@@ -145,11 +146,23 @@ public class User {
         this.role = role;
     }
 
+    public ProfileImage getProfileImage() {
+        return profileImage;
+    }
+
+    public void setProfileImage(
+            ProfileImage profileImage) {
+
+        this.profileImage = profileImage;
+    }
+
     public boolean getEmailVerified() {
         return emailVerified;
     }
 
-    public void setEmailVerified(boolean emailVerified) {
+    public void setEmailVerified(
+            boolean emailVerified) {
+
         this.emailVerified = emailVerified;
     }
 
@@ -159,6 +172,7 @@ public class User {
 
     public void setEmailVerificationTokenHash(
             String emailVerificationTokenHash) {
+
         this.emailVerificationTokenHash = emailVerificationTokenHash;
     }
 
@@ -168,6 +182,7 @@ public class User {
 
     public void setEmailVerificationTokenExpiresAt(
             LocalDateTime expiresAt) {
+
         this.emailVerificationTokenExpiresAt = expiresAt;
     }
 
@@ -177,6 +192,7 @@ public class User {
 
     public void setPasswordResetTokenHash(
             String passwordResetTokenHash) {
+
         this.passwordResetTokenHash = passwordResetTokenHash;
     }
 
@@ -186,6 +202,7 @@ public class User {
 
     public void setPasswordResetTokenExpiresAt(
             LocalDateTime expiresAt) {
+
         this.passwordResetTokenExpiresAt = expiresAt;
     }
 }

@@ -1,5 +1,3 @@
-// @/modules/trading/usertradingaccount/mapper/UserTradingAccountMapper.java
-
 package com.finance.backend.modules.trading.usertradingaccount.mapper;
 
 import com.finance.backend.modules.trading.tradingaccount.model.TradingAccount;

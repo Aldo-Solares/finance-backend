@@ -75,8 +75,10 @@ public class SecurityConfig {
                                                                 }))
 
                                 .authorizeHttpRequests(auth -> auth
+
                                                 .requestMatchers(
-                                                                "/api/auth/**")
+                                                                "/api/auth/**",
+                                                                "/uploads/profile-images/**")
                                                 .permitAll()
 
                                                 .anyRequest()

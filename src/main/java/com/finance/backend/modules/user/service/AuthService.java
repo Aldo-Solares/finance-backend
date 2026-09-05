@@ -13,16 +13,16 @@ import com.finance.backend.modules.user.dto.auth.RegisterResponse;
 import com.finance.backend.modules.user.dto.auth.ResendVerificationRequest;
 import com.finance.backend.modules.user.dto.auth.ResetPasswordRequest;
 import com.finance.backend.modules.user.dto.auth.VerifyEmailRequest;
-import com.finance.backend.modules.user.repository.UserRepository;
-import com.finance.backend.modules.user.repository.UserSettingsRepository;
-
 import com.finance.backend.modules.user.mapper.UserMapper;
 import com.finance.backend.modules.user.model.Role;
 import com.finance.backend.modules.user.model.User;
 import com.finance.backend.modules.user.model.UserSettings;
+import com.finance.backend.modules.user.repository.UserRepository;
+import com.finance.backend.modules.user.repository.UserSettingsRepository;
 import com.finance.backend.security.JwtService;
 import com.finance.backend.utils.email.UserEmailService;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -46,6 +46,8 @@ public class AuthService {
         private final CustomUserDetailsService customUserDetailsService;
         private final UserEmailService userEmailService;
         private final UserSettingsRepository userSettingsRepository;
+        private final String backendUrl;
+
         private final SecureRandom secureRandom = new SecureRandom();
 
         public AuthService(
@@ -54,7 +56,8 @@ public class AuthService {
                         PasswordEncoder passwordEncoder,
                         JwtService jwtService,
                         CustomUserDetailsService customUserDetailsService,
-                        UserEmailService userEmailService) {
+                        UserEmailService userEmailService,
+                        @Value("${app.backend-url:http://localhost:9000}") String backendUrl) {
 
                 this.userRepository = userRepository;
                 this.userSettingsRepository = userSettingsRepository;
@@ -62,6 +65,7 @@ public class AuthService {
                 this.jwtService = jwtService;
                 this.customUserDetailsService = customUserDetailsService;
                 this.userEmailService = userEmailService;
+                this.backendUrl = backendUrl.replaceAll("/$", "");
         }
 
         // ===================
@@ -121,7 +125,9 @@ public class AuthService {
                                 verificationToken);
 
                 return new RegisterResponse(
-                                UserMapper.toResponse(savedUser));
+                                UserMapper.toResponse(
+                                                savedUser,
+                                                backendUrl));
         }
 
         // ===================
@@ -232,7 +238,9 @@ public class AuthService {
 
                 return new LoginResponse(
                                 token,
-                                UserMapper.toResponse(user));
+                                UserMapper.toResponse(
+                                                user,
+                                                backendUrl));
         }
 
         // ===================
@@ -329,9 +337,7 @@ public class AuthService {
                         String token) {
 
                 try {
-
-                        MessageDigest digest = MessageDigest.getInstance(
-                                        "SHA-256");
+                        MessageDigest digest = MessageDigest.getInstance("SHA-256");
 
                         byte[] hash = digest.digest(
                                         token.getBytes(

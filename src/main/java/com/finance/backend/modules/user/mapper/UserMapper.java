@@ -6,39 +6,58 @@ import com.finance.backend.modules.user.model.User;
 
 public final class UserMapper {
 
-    private UserMapper() {
-    }
-
-    public static void updateEntity(
-            User user,
-            UpdateUserRequest request) {
-        user.setName(request.name().trim());
-        user.setLastName(normalize(request.lastName()));
-        user.setSecondLastName(normalize(request.secondLastName()));
-        user.setEmail(request.email().trim().toLowerCase());
-    }
-
-    public static UserResponse toResponse(User user) {
-        return new UserResponse(
-                user.getUserId(),
-                user.getName(),
-                user.getLastName(),
-                user.getSecondLastName(),
-                user.getEmail(),
-                user.getRole(),
-                user.getEmailVerified());
-    }
-
-    private static String normalize(
-            String value) {
-        if (value == null) {
-            return null;
+        private UserMapper() {
         }
 
-        String normalized = value.trim();
+        public static void updateEntity(
+                        User user,
+                        UpdateUserRequest request) {
 
-        return normalized.isEmpty()
-                ? null
-                : normalized;
-    }
+                user.setName(
+                                request.name().trim());
+
+                user.setLastName(
+                                normalize(request.lastName()));
+
+                user.setSecondLastName(
+                                normalize(request.secondLastName()));
+
+                user.setEmail(
+                                request.email()
+                                                .trim()
+                                                .toLowerCase());
+        }
+
+        public static UserResponse toResponse(
+                        User user,
+                        String backendUrl) {
+
+                return new UserResponse(
+                                user.getUserId(),
+                                user.getName(),
+                                user.getLastName(),
+                                user.getSecondLastName(),
+                                user.getEmail(),
+                                user.getRole(),
+                                user.getEmailVerified(),
+                                user.getProfileImage() == null
+                                                ? null
+                                                : ProfileImageMapper.toResponse(
+                                                                user.getProfileImage(),
+                                                                backendUrl));
+        }
+
+        private static String normalize(
+                        String value) {
+
+                if (value == null) {
+                        return null;
+                }
+
+                String normalized = value.trim();
+
+                return normalized.isEmpty()
+                                ? null
+                                : normalized;
+        }
 }
