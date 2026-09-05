@@ -14,7 +14,6 @@ import com.finance.backend.modules.user.repository.UserRepository;
 import com.finance.backend.security.JwtService;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

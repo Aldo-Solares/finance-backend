@@ -5,14 +5,11 @@ import com.finance.backend.exception.ResourceNotFoundException;
 import com.finance.backend.modules.user.dto.profileimage.ProfileImageResponse;
 import com.finance.backend.modules.user.dto.profileimage.UpdateProfileImageRequest;
 import com.finance.backend.modules.user.dto.profileimage.UpdateProfileImageStatusRequest;
-import com.finance.backend.modules.user.dto.user.UserResponse;
 import com.finance.backend.modules.user.mapper.ProfileImageMapper;
-import com.finance.backend.modules.user.mapper.UserMapper;
 import com.finance.backend.modules.user.model.ProfileImage;
 import com.finance.backend.modules.user.repository.ProfileImageRepository;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
