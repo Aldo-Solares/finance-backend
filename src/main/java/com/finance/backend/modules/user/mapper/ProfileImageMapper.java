@@ -15,7 +15,7 @@ public final class ProfileImageMapper {
             String backendUrl) {
 
         return new ProfileImageResponse(
-                profileImage.getProfileImageId(),
+                profileImage.getid(),
                 profileImage.getName(),
                 backendUrl + IMAGE_URL_PREFIX + profileImage.getFileName(),
                 profileImage.getActive());

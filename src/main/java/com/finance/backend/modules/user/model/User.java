@@ -8,10 +8,6 @@ import java.time.LocalDateTime;
 @Table(name = "users")
 public class User {
 
-    // ===================
-    // IDENTIFICACIÓN
-    // ===================
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")

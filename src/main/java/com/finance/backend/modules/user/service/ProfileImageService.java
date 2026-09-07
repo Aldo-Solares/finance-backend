@@ -52,7 +52,7 @@ public class ProfileImageService {
         public List<ProfileImageResponse> findActive() {
 
                 return profileImageRepository
-                                .findByActiveTrueOrderByProfileImageIdAsc()
+                                .findByActiveTrueOrderByNameAsc()
                                 .stream()
                                 .map(profileImage -> ProfileImageMapper.toResponse(
                                                 profileImage,

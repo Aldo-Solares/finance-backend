@@ -10,14 +10,14 @@ import java.util.List;
 public interface ProfileImageRepository
                 extends JpaRepository<ProfileImage, Long> {
 
-        List<ProfileImage> findByActiveTrueOrderByProfileImageIdAsc();
+        List<ProfileImage> findByActiveTrueOrderByNameAsc();
 
         boolean existsByNameIgnoreCase(String name);
 
         @Query("""
                         select count(u)
                         from User u
-                        where u.profileImage.profileImageId = :profileImageId
+                        where u.profileImage.id = :id
                         """)
         long countUsersByProfileImageId(
                         Long profileImageId);

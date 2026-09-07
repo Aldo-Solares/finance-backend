@@ -1,16 +1,20 @@
 package com.finance.backend.modules.user.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
 @Table(name = "user_settings", uniqueConstraints = {
         @UniqueConstraint(name = "uk_user_settings_user_id", columnNames = "user_id")
 })
 public class UserSettings {
-
-    // ===================
-    // IDENTIFICACIÓN
-    // ===================
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,6 +34,14 @@ public class UserSettings {
 
     @Column(name = "statement_cutoff_reminder", nullable = false)
     private boolean statementCutoffReminder = false;
+
+    // ===================
+    // PERFIL
+    // ===================
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "profile_image_background", nullable = false, length = 20)
+    private ProfileImageBackground profileImageBackground = ProfileImageBackground.BLUE;
 
     // ===================
     // CONSTRUCTOR
@@ -62,9 +74,15 @@ public class UserSettings {
         return statementCutoffReminder;
     }
 
-    public void setStatementCutoffReminder(
-            boolean statementCutoffReminder) {
-
+    public void setStatementCutoffReminder(boolean statementCutoffReminder) {
         this.statementCutoffReminder = statementCutoffReminder;
+    }
+
+    public ProfileImageBackground getProfileImageBackground() {
+        return profileImageBackground;
+    }
+
+    public void setProfileImageBackground(ProfileImageBackground profileImageBackground) {
+        this.profileImageBackground = profileImageBackground;
     }
 }

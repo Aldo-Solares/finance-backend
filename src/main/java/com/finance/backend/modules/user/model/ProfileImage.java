@@ -13,8 +13,7 @@ public class ProfileImage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "profile_image_id")
-    private Long profileImageId;
+    private Long id;
 
     @Column(nullable = false, length = 100)
     private String name;
@@ -28,12 +27,12 @@ public class ProfileImage {
     public ProfileImage() {
     }
 
-    public Long getProfileImageId() {
-        return profileImageId;
+    public Long getid() {
+        return id;
     }
 
-    public void setProfileImageId(Long profileImageId) {
-        this.profileImageId = profileImageId;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
