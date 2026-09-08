@@ -6,44 +6,58 @@ import com.finance.backend.modules.user.model.UserSettings;
 
 public final class UserSettingsMapper {
 
-    private UserSettingsMapper() {
-    }
+        private UserSettingsMapper() {
 
-    // ===================
-    // RESPONSE
-    // ===================
+        }
 
-    public static UserSettingsResponse toResponse(
-            UserSettings userSettings) {
+        // ===================
+        // RESPONSE
+        // ===================
 
-        return new UserSettingsResponse(
-                userSettings.getUserSettingsId(),
-                userSettings.getUserId(),
-                userSettings.getStatementCutoffReminder(),
-                userSettings.getProfileImageBackground());
-    }
+        public static UserSettingsResponse toResponse(
+                        UserSettings userSettings) {
 
-    // ===================
-    // UPDATE REMINDER
-    // ===================
+                return new UserSettingsResponse(
+                                userSettings.getUserSettingsId(),
+                                userSettings.getUserId(),
+                                userSettings.getStatementCutoffReminder(),
+                                userSettings.getProfileImageBackground(),
+                                userSettings.getUseProfileImageBackgroundAsPrimaryColor());
+        }
 
-    public static void updateStatementCutoffReminder(
-            UserSettings userSettings,
-            Boolean statementCutoffReminder) {
+        // ===================
+        // UPDATE REMINDER
+        // ===================
 
-        userSettings.setStatementCutoffReminder(
-                statementCutoffReminder);
-    }
+        public static void updateStatementCutoffReminder(
+                        UserSettings userSettings,
+                        Boolean statementCutoffReminder) {
 
-    // ===================
-    // UPDATE PROFILE IMAGE BACKGROUND
-    // ===================
+                userSettings.setStatementCutoffReminder(
+                                statementCutoffReminder);
+        }
 
-    public static void updateProfileImageBackground(
-            UserSettings userSettings,
-            ProfileImageBackground profileImageBackground) {
+        // ===================
+        // UPDATE PROFILE IMAGE BACKGROUND
+        // ===================
 
-        userSettings.setProfileImageBackground(
-                profileImageBackground);
-    }
+        public static void updateProfileImageBackground(
+                        UserSettings userSettings,
+                        ProfileImageBackground profileImageBackground) {
+
+                userSettings.setProfileImageBackground(
+                                profileImageBackground);
+        }
+
+        // ===================
+        // UPDATE PRIMARY COLOR
+        // ===================
+
+        public static void updateUseProfileImageBackgroundAsPrimaryColor(
+                        UserSettings userSettings,
+                        Boolean useProfileImageBackgroundAsPrimaryColor) {
+
+                userSettings.setUseProfileImageBackgroundAsPrimaryColor(
+                                useProfileImageBackgroundAsPrimaryColor);
+        }
 }

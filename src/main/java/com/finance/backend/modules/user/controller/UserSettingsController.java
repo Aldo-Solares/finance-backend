@@ -3,12 +3,18 @@
 package com.finance.backend.modules.user.controller;
 
 import com.finance.backend.dto.ApiResponse;
+
 import com.finance.backend.modules.user.dto.settings.UpdateProfileImageBackgroundRequest;
 import com.finance.backend.modules.user.dto.settings.UpdateStatementCutoffReminderRequest;
+import com.finance.backend.modules.user.dto.settings.UpdateUseProfileImageBackgroundAsPrimaryColorRequest;
 import com.finance.backend.modules.user.dto.settings.UserSettingsResponse;
+
 import com.finance.backend.modules.user.service.UserSettingsService;
+
 import jakarta.validation.Valid;
+
 import org.springframework.security.core.Authentication;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -68,6 +74,22 @@ public class UserSettingsController {
                 return ApiResponse.success(
                                 "Fondo de imagen de perfil actualizado",
                                 userSettingsService.updateProfileImageBackground(
+                                                authentication.getName(),
+                                                request));
+        }
+
+        // ===================
+        // ACTUALIZAR PRIMARY COLOR
+        // ===================
+
+        @PatchMapping("/me/use-profile-image-background-as-primary-color")
+        public ApiResponse<UserSettingsResponse> updateUseProfileImageBackgroundAsPrimaryColor(
+                        Authentication authentication,
+                        @Valid @RequestBody UpdateUseProfileImageBackgroundAsPrimaryColorRequest request) {
+
+                return ApiResponse.success(
+                                "Preferencia de color principal actualizada",
+                                userSettingsService.updateUseProfileImageBackgroundAsPrimaryColor(
                                                 authentication.getName(),
                                                 request));
         }

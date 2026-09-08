@@ -3,6 +3,7 @@ package com.finance.backend.modules.user.service;
 import com.finance.backend.exception.ResourceNotFoundException;
 import com.finance.backend.modules.user.dto.settings.UpdateProfileImageBackgroundRequest;
 import com.finance.backend.modules.user.dto.settings.UpdateStatementCutoffReminderRequest;
+import com.finance.backend.modules.user.dto.settings.UpdateUseProfileImageBackgroundAsPrimaryColorRequest;
 import com.finance.backend.modules.user.dto.settings.UserSettingsResponse;
 import com.finance.backend.modules.user.mapper.UserSettingsMapper;
 import com.finance.backend.modules.user.model.User;
@@ -114,5 +115,29 @@ public class UserSettingsService {
                                 .orElseThrow(
                                                 () -> new ResourceNotFoundException(
                                                                 "Configuración del usuario no encontrada"));
+        }
+        // ===================
+        // ACTUALIZAR PRIMARY COLOR
+        // ===================
+
+        @Transactional
+        public UserSettingsResponse updateUseProfileImageBackgroundAsPrimaryColor(
+                        String email,
+                        UpdateUseProfileImageBackgroundAsPrimaryColorRequest request) {
+
+                User user = getUserByEmail(email);
+
+                UserSettings userSettings = getUserSettings(
+                                user.getUserId());
+
+                UserSettingsMapper.updateUseProfileImageBackgroundAsPrimaryColor(
+                                userSettings,
+                                request.useProfileImageBackgroundAsPrimaryColor());
+
+                UserSettings savedUserSettings = userSettingsRepository.save(
+                                userSettings);
+
+                return UserSettingsMapper.toResponse(
+                                savedUserSettings);
         }
 }

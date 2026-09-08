@@ -4,13 +4,15 @@ import com.finance.backend.modules.user.model.ProfileImageBackground;
 
 public record UserSettingsResponse(
 
-                Long userSettingsId,
+        Long userSettingsId,
 
-                Long userId,
+        Long userId,
 
-                boolean statementCutoffReminder,
+        boolean statementCutoffReminder,
 
-                ProfileImageBackground profileImageBackground
+        ProfileImageBackground profileImageBackground,
+
+        boolean useProfileImageBackgroundAsPrimaryColor
 
 ) {
 }
