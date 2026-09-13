@@ -43,9 +43,6 @@ public class UserSettings {
     @Column(name = "profile_image_background", nullable = false, length = 20)
     private ProfileImageBackground profileImageBackground = ProfileImageBackground.BLUE;
 
-    @Column(name = "use_profile_image_background_as_primary_color", nullable = false)
-    private boolean useProfileImageBackgroundAsPrimaryColor = false;
-
     // ===================
     // CONSTRUCTOR
     // ===================
@@ -87,14 +84,5 @@ public class UserSettings {
 
     public void setProfileImageBackground(ProfileImageBackground profileImageBackground) {
         this.profileImageBackground = profileImageBackground;
-    }
-
-    public boolean getUseProfileImageBackgroundAsPrimaryColor() {
-        return useProfileImageBackgroundAsPrimaryColor;
-    }
-
-    public void setUseProfileImageBackgroundAsPrimaryColor(
-            boolean useProfileImageBackgroundAsPrimaryColor) {
-        this.useProfileImageBackgroundAsPrimaryColor = useProfileImageBackgroundAsPrimaryColor;
     }
 }

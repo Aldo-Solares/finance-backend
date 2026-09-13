@@ -21,8 +21,7 @@ public final class UserSettingsMapper {
                                 userSettings.getUserSettingsId(),
                                 userSettings.getUserId(),
                                 userSettings.getStatementCutoffReminder(),
-                                userSettings.getProfileImageBackground(),
-                                userSettings.getUseProfileImageBackgroundAsPrimaryColor());
+                                userSettings.getProfileImageBackground());
         }
 
         // ===================
@@ -47,17 +46,5 @@ public final class UserSettingsMapper {
 
                 userSettings.setProfileImageBackground(
                                 profileImageBackground);
-        }
-
-        // ===================
-        // UPDATE PRIMARY COLOR
-        // ===================
-
-        public static void updateUseProfileImageBackgroundAsPrimaryColor(
-                        UserSettings userSettings,
-                        Boolean useProfileImageBackgroundAsPrimaryColor) {
-
-                userSettings.setUseProfileImageBackgroundAsPrimaryColor(
-                                useProfileImageBackgroundAsPrimaryColor);
         }
 }

@@ -25,7 +25,7 @@ import java.util.UUID;
 @Service
 public class ProfileImageService {
 
-        private static final int MAX_PROFILE_IMAGES = 20;
+        private static final int MAX_PROFILE_IMAGES = 50;
         private static final long MAX_FILE_SIZE = 25 * 1024 * 1024;
 
         private final ProfileImageRepository profileImageRepository;
