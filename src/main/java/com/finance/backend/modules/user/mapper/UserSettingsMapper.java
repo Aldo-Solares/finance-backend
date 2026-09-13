@@ -21,7 +21,8 @@ public final class UserSettingsMapper {
                                 userSettings.getUserSettingsId(),
                                 userSettings.getUserId(),
                                 userSettings.getStatementCutoffReminder(),
-                                userSettings.getProfileImageBackground());
+                                userSettings.getProfileImageBackground(),
+                                userSettings.getDarkMode());
         }
 
         // ===================
