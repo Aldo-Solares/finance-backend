@@ -80,6 +80,8 @@ public class UserSettingsController {
         // ===================
         // UPDATE DARKMODE
         // ===================
+
+        @PatchMapping("/me/dark-mode")
         public ApiResponse<UserSettingsResponse> updateDarkMode(
                         Authentication authentication,
                         @Valid @RequestBody UpdateDarkModeRequest request) {
