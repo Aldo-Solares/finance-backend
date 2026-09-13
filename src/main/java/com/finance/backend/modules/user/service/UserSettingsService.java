@@ -1,6 +1,7 @@
 package com.finance.backend.modules.user.service;
 
 import com.finance.backend.exception.ResourceNotFoundException;
+import com.finance.backend.modules.user.dto.settings.UpdateDarkModeRequest;
 import com.finance.backend.modules.user.dto.settings.UpdateProfileImageBackgroundRequest;
 import com.finance.backend.modules.user.dto.settings.UpdateStatementCutoffReminderRequest;
 import com.finance.backend.modules.user.dto.settings.UserSettingsResponse;
@@ -68,7 +69,7 @@ public class UserSettingsService {
         }
 
         // ===================
-        // ACTUALIZAR BACKGROUND
+        // UPDATE BACKGROUND
         // ===================
 
         @Transactional
@@ -84,6 +85,30 @@ public class UserSettingsService {
                 UserSettingsMapper.updateProfileImageBackground(
                                 userSettings,
                                 request.profileImageBackground());
+
+                UserSettings savedUserSettings = userSettingsRepository.save(
+                                userSettings);
+
+                return UserSettingsMapper.toResponse(
+                                savedUserSettings);
+        }
+
+        // ===================
+        // UPDATE DARKMODE
+        // ===================
+        @Transactional
+        public UserSettingsResponse updateDarkMode(
+                        String email,
+                        UpdateDarkModeRequest request) {
+
+                User user = getUserByEmail(email);
+
+                UserSettings userSettings = getUserSettings(
+                                user.getUserId());
+
+                UserSettingsMapper.updateDarkMode(
+                                userSettings,
+                                request.active());
 
                 UserSettings savedUserSettings = userSettingsRepository.save(
                                 userSettings);
@@ -115,4 +140,5 @@ public class UserSettingsService {
                                                 () -> new ResourceNotFoundException(
                                                                 "Configuración del usuario no encontrada"));
         }
+
 }

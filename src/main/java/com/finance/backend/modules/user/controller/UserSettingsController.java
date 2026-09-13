@@ -3,7 +3,7 @@
 package com.finance.backend.modules.user.controller;
 
 import com.finance.backend.dto.ApiResponse;
-
+import com.finance.backend.modules.user.dto.settings.UpdateDarkModeRequest;
 import com.finance.backend.modules.user.dto.settings.UpdateProfileImageBackgroundRequest;
 import com.finance.backend.modules.user.dto.settings.UpdateStatementCutoffReminderRequest;
 import com.finance.backend.modules.user.dto.settings.UserSettingsResponse;
@@ -33,7 +33,7 @@ public class UserSettingsController {
         }
 
         // ===================
-        // CONSULTA
+        // CONSULT
         // ===================
 
         @GetMapping("/me")
@@ -46,7 +46,7 @@ public class UserSettingsController {
         }
 
         // ===================
-        // ACTUALIZAR REMINDER
+        // UPDATE REMINDER
         // ===================
 
         @PatchMapping("/me/statement-cutoff-reminder")
@@ -62,7 +62,7 @@ public class UserSettingsController {
         }
 
         // ===================
-        // ACTUALIZAR BACKGROUND
+        // UPDATE BACKGROUND
         // ===================
 
         @PatchMapping("/me/profile-image-background")
@@ -73,6 +73,20 @@ public class UserSettingsController {
                 return ApiResponse.success(
                                 "Fondo de imagen de perfil actualizado",
                                 userSettingsService.updateProfileImageBackground(
+                                                authentication.getName(),
+                                                request));
+        }
+
+        // ===================
+        // UPDATE DARKMODE
+        // ===================
+        public ApiResponse<UserSettingsResponse> updateDarkMode(
+                        Authentication authentication,
+                        @Valid @RequestBody UpdateDarkModeRequest request) {
+
+                return ApiResponse.success(
+                                "Preferencia de modo oscuro actualizada",
+                                userSettingsService.updateDarkMode(
                                                 authentication.getName(),
                                                 request));
         }

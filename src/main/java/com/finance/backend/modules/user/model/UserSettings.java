@@ -44,6 +44,12 @@ public class UserSettings {
     private ProfileImageBackground profileImageBackground = ProfileImageBackground.BLUE;
 
     // ===================
+    // DARKMODE
+    // ===================
+    @Column(name = "dark_mode", nullable = false)
+    private boolean darkMode = false;
+
+    // ===================
     // CONSTRUCTOR
     // ===================
 
@@ -84,5 +90,13 @@ public class UserSettings {
 
     public void setProfileImageBackground(ProfileImageBackground profileImageBackground) {
         this.profileImageBackground = profileImageBackground;
+    }
+
+    public boolean getDarkMode() {
+        return darkMode;
+    }
+
+    public void setDarkMode(boolean darkMode) {
+        this.darkMode = darkMode;
     }
 }

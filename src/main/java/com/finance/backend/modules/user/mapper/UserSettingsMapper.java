@@ -47,4 +47,15 @@ public final class UserSettingsMapper {
                 userSettings.setProfileImageBackground(
                                 profileImageBackground);
         }
+
+        // ===================
+        // UPDATE DARKMODE
+        // ===================
+        public static void updateDarkMode(
+                        UserSettings userSettings,
+                        Boolean darkMode) {
+
+                userSettings.setDarkMode(
+                                darkMode);
+        }
 }
