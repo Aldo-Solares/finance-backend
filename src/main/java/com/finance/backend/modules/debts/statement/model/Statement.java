@@ -1,9 +1,13 @@
 package com.finance.backend.modules.debts.statement.model;
 
-import com.finance.backend.modules.debts.usercard.model.UserCard;
-import jakarta.persistence.*;
-
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.finance.backend.modules.debts.statemententry.model.StatementEntry;
+import com.finance.backend.modules.debts.usercard.model.UserCard;
+
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "statements", uniqueConstraints = {
@@ -23,6 +27,9 @@ public class Statement {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_card_id", nullable = false)
     private UserCard userCard;
+
+    @OneToMany(mappedBy = "statement", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<StatementEntry> entries = new ArrayList<>();
 
     @Column(nullable = false)
     private Integer year;
@@ -55,8 +62,7 @@ public class Statement {
         return statementId;
     }
 
-    public void setStatementId(
-            Long statementId) {
+    public void setStatementId(Long statementId) {
         this.statementId = statementId;
     }
 
@@ -64,17 +70,23 @@ public class Statement {
         return userCard;
     }
 
-    public void setUserCard(
-            UserCard userCard) {
+    public void setUserCard(UserCard userCard) {
         this.userCard = userCard;
+    }
+
+    public List<StatementEntry> getEntries() {
+        return entries;
+    }
+
+    public void setEntries(List<StatementEntry> entries) {
+        this.entries = entries;
     }
 
     public Integer getYear() {
         return year;
     }
 
-    public void setYear(
-            Integer year) {
+    public void setYear(Integer year) {
         this.year = year;
     }
 
@@ -82,8 +94,7 @@ public class Statement {
         return month;
     }
 
-    public void setMonth(
-            Integer month) {
+    public void setMonth(Integer month) {
         this.month = month;
     }
 
@@ -91,8 +102,7 @@ public class Statement {
         return periodStart;
     }
 
-    public void setPeriodStart(
-            LocalDate periodStart) {
+    public void setPeriodStart(LocalDate periodStart) {
         this.periodStart = periodStart;
     }
 
@@ -100,8 +110,7 @@ public class Statement {
         return periodEnd;
     }
 
-    public void setPeriodEnd(
-            LocalDate periodEnd) {
+    public void setPeriodEnd(LocalDate periodEnd) {
         this.periodEnd = periodEnd;
     }
 
@@ -109,8 +118,7 @@ public class Statement {
         return paymentDate;
     }
 
-    public void setPaymentDate(
-            LocalDate paymentDate) {
+    public void setPaymentDate(LocalDate paymentDate) {
         this.paymentDate = paymentDate;
     }
 
@@ -118,8 +126,7 @@ public class Statement {
         return status;
     }
 
-    public void setStatus(
-            StatementStatus status) {
+    public void setStatus(StatementStatus status) {
         this.status = status;
     }
 
@@ -127,8 +134,7 @@ public class Statement {
         return paid;
     }
 
-    public void setPaid(
-            Boolean paid) {
+    public void setPaid(Boolean paid) {
         this.paid = paid;
     }
 
@@ -136,8 +142,7 @@ public class Statement {
         return notes;
     }
 
-    public void setNotes(
-            String notes) {
+    public void setNotes(String notes) {
         this.notes = notes;
     }
 }

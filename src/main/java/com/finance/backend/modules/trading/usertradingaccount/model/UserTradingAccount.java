@@ -1,16 +1,13 @@
 package com.finance.backend.modules.trading.usertradingaccount.model;
 
+import com.finance.backend.modules.trading.trade.model.Trade;
 import com.finance.backend.modules.trading.tradingaccount.model.TradingAccount;
 import com.finance.backend.modules.user.model.User;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+
+import jakarta.persistence.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "user_trading_accounts")
@@ -21,25 +18,19 @@ public class UserTradingAccount {
     @Column(name = "user_trading_account_id")
     private Long userTradingAccountId;
 
-    // ===================
-    // USER
-    // ===================
-
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-
-    // ===================
-    // TRADING ACCOUNT
-    // ===================
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "trading_account_id", nullable = false)
     private TradingAccount tradingAccount;
 
-    // ===================
-    // ID
-    // ===================
+    @OneToMany(mappedBy = "userTradingAccount", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Trade> trades = new ArrayList<>();
+
+    public UserTradingAccount() {
+    }
 
     public Long getUserTradingAccountId() {
         return userTradingAccountId;
@@ -49,10 +40,6 @@ public class UserTradingAccount {
         this.userTradingAccountId = userTradingAccountId;
     }
 
-    // ===================
-    // USER
-    // ===================
-
     public User getUser() {
         return user;
     }
@@ -60,10 +47,6 @@ public class UserTradingAccount {
     public void setUser(User user) {
         this.user = user;
     }
-
-    // ===================
-    // TRADING ACCOUNT
-    // ===================
 
     public TradingAccount getTradingAccount() {
         return tradingAccount;
@@ -73,4 +56,11 @@ public class UserTradingAccount {
         this.tradingAccount = tradingAccount;
     }
 
+    public List<Trade> getTrades() {
+        return trades;
+    }
+
+    public void setTrades(List<Trade> trades) {
+        this.trades = trades;
+    }
 }

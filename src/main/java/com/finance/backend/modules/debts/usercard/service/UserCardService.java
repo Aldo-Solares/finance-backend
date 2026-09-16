@@ -5,13 +5,13 @@ import com.finance.backend.exception.ResourceNotFoundException;
 import com.finance.backend.modules.debts.card.model.Card;
 import com.finance.backend.modules.debts.card.repository.CardRepository;
 import com.finance.backend.modules.debts.usercard.dto.CreateUserCardRequest;
-import com.finance.backend.modules.debts.usercard.dto.UpdateUserCardRequest;
 import com.finance.backend.modules.debts.usercard.dto.UserCardResponse;
 import com.finance.backend.modules.debts.usercard.mapper.UserCardMapper;
 import com.finance.backend.modules.debts.usercard.model.UserCard;
 import com.finance.backend.modules.debts.usercard.repository.UserCardRepository;
 import com.finance.backend.modules.user.model.User;
 import com.finance.backend.modules.user.repository.UserRepository;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,24 +44,7 @@ public class UserCardService {
                         String email) {
 
                 return userCardRepository
-                                .findByUserEmailIgnoreCaseOrderByUserCardIdAsc(
-                                                email)
-                                .stream()
-                                .map(UserCardMapper::toResponse)
-                                .toList();
-        }
-
-        // ===================
-        // FIND ACTIVE
-        // ===================
-
-        @Transactional(readOnly = true)
-        public List<UserCardResponse> findAllActive(
-                        String email) {
-
-                return userCardRepository
-                                .findByUserEmailIgnoreCaseAndActiveTrueOrderByUserCardIdAsc(
-                                                email)
+                                .findByUserEmailIgnoreCaseOrderByUserCardIdAsc(email)
                                 .stream()
                                 .map(UserCardMapper::toResponse)
                                 .toList();
@@ -100,8 +83,7 @@ public class UserCardService {
                                         "La tarjeta ya está agregada al usuario");
                 }
 
-                User user = getUser(
-                                email);
+                User user = getUser(email);
 
                 Card card = getCard(
                                 request.cardId());
@@ -119,30 +101,6 @@ public class UserCardService {
         }
 
         // ===================
-        // UPDATE
-        // ===================
-
-        public UserCardResponse update(
-                        Long userCardId,
-                        UpdateUserCardRequest request,
-                        String email) {
-
-                UserCard userCard = getOwnedUserCard(
-                                userCardId,
-                                email);
-
-                UserCardMapper.updateEntity(
-                                userCard,
-                                request);
-
-                UserCard updatedUserCard = userCardRepository.save(
-                                userCard);
-
-                return UserCardMapper.toResponse(
-                                updatedUserCard);
-        }
-
-        // ===================
         // DELETE
         // ===================
 
@@ -154,8 +112,7 @@ public class UserCardService {
                                 userCardId,
                                 email);
 
-                userCardRepository.delete(
-                                userCard);
+                userCardRepository.delete(userCard);
         }
 
         // ===================
@@ -183,8 +140,7 @@ public class UserCardService {
                         Long cardId) {
 
                 return cardRepository
-                                .findById(
-                                                cardId)
+                                .findById(cardId)
                                 .orElseThrow(
                                                 () -> new ResourceNotFoundException(
                                                                 "Tarjeta de catálogo no encontrada"));
@@ -198,8 +154,7 @@ public class UserCardService {
                         String email) {
 
                 return userRepository
-                                .findByEmailIgnoreCase(
-                                                email)
+                                .findByEmailIgnoreCase(email)
                                 .orElseThrow(
                                                 () -> new ResourceNotFoundException(
                                                                 "Usuario no encontrado"));

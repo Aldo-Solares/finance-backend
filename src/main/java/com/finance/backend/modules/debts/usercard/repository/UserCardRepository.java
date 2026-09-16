@@ -12,9 +12,6 @@ public interface UserCardRepository
         List<UserCard> findByUserEmailIgnoreCaseOrderByUserCardIdAsc(
                         String email);
 
-        List<UserCard> findByUserEmailIgnoreCaseAndActiveTrueOrderByUserCardIdAsc(
-                        String email);
-
         Optional<UserCard> findByUserCardIdAndUserEmailIgnoreCase(
                         Long userCardId,
                         String email);

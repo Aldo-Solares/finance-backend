@@ -4,9 +4,7 @@ import jakarta.validation.constraints.NotNull;
 
 public record CreateUserCardRequest(
 
-        @NotNull Long cardId,
-
-        @NotNull Boolean active
+                @NotNull Long cardId
 
 ) {
 }

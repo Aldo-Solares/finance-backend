@@ -1,7 +1,12 @@
 package com.finance.backend.modules.debts.usercard.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.finance.backend.modules.debts.card.model.Card;
+import com.finance.backend.modules.debts.statement.model.Statement;
 import com.finance.backend.modules.user.model.User;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -26,8 +31,8 @@ public class UserCard {
     @JoinColumn(name = "card_id", nullable = false)
     private Card card;
 
-    @Column(nullable = false)
-    private Boolean active = true;
+    @OneToMany(mappedBy = "userCard", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Statement> statements = new ArrayList<>();
 
     public UserCard() {
     }
@@ -36,8 +41,7 @@ public class UserCard {
         return userCardId;
     }
 
-    public void setUserCardId(
-            Long userCardId) {
+    public void setUserCardId(Long userCardId) {
         this.userCardId = userCardId;
     }
 
@@ -45,8 +49,7 @@ public class UserCard {
         return user;
     }
 
-    public void setUser(
-            User user) {
+    public void setUser(User user) {
         this.user = user;
     }
 
@@ -54,17 +57,15 @@ public class UserCard {
         return card;
     }
 
-    public void setCard(
-            Card card) {
+    public void setCard(Card card) {
         this.card = card;
     }
 
-    public Boolean getActive() {
-        return active;
+    public List<Statement> getStatements() {
+        return statements;
     }
 
-    public void setActive(
-            Boolean active) {
-        this.active = active;
+    public void setStatements(List<Statement> statements) {
+        this.statements = statements;
     }
 }
