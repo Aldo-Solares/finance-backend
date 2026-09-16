@@ -47,7 +47,7 @@ public class User {
     // ===================
     // IMAGEN DE PERFIL
     // ===================
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "profile_image_id")
     private ProfileImage profileImage;
 

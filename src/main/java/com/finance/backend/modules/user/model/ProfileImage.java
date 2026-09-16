@@ -22,9 +22,6 @@ public class ProfileImage {
     @Column(name = "file_name", nullable = false, unique = true, length = 255)
     private String fileName;
 
-    @Column(nullable = false)
-    private boolean active = true;
-
     public ProfileImage() {
     }
 
@@ -50,13 +47,5 @@ public class ProfileImage {
 
     public void setFileName(String fileName) {
         this.fileName = fileName;
-    }
-
-    public boolean getActive() {
-        return active;
-    }
-
-    public void setActive(boolean active) {
-        this.active = active;
     }
 }

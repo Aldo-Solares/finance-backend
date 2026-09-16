@@ -3,7 +3,6 @@ package com.finance.backend.modules.user.controller;
 import com.finance.backend.dto.ApiResponse;
 import com.finance.backend.modules.user.dto.profileimage.ProfileImageResponse;
 import com.finance.backend.modules.user.dto.profileimage.UpdateProfileImageRequest;
-import com.finance.backend.modules.user.dto.profileimage.UpdateProfileImageStatusRequest;
 import com.finance.backend.modules.user.service.ProfileImageService;
 
 import jakarta.validation.Valid;
@@ -26,21 +25,18 @@ public class ProfileImageController {
 
         public ProfileImageController(
                         ProfileImageService profileImageService) {
-
                 this.profileImageService = profileImageService;
         }
 
         @GetMapping
-        public ApiResponse<List<ProfileImageResponse>> findActive() {
-
+        public ApiResponse<List<ProfileImageResponse>> findAll() {
                 return ApiResponse.success(
-                                profileImageService.findActive());
+                                profileImageService.findAll());
         }
 
         @GetMapping("/admin")
         @PreAuthorize("hasRole('ADMIN')")
-        public ApiResponse<List<ProfileImageResponse>> findAll() {
-
+        public ApiResponse<List<ProfileImageResponse>> findAllAdmin() {
                 return ApiResponse.success(
                                 profileImageService.findAll());
         }
@@ -71,26 +67,12 @@ public class ProfileImageController {
                                                 request));
         }
 
-        @PatchMapping("/{profileImageId}/active")
-        @PreAuthorize("hasRole('ADMIN')")
-        public ApiResponse<ProfileImageResponse> updateActive(
-                        @PathVariable Long profileImageId,
-                        @Valid @RequestBody UpdateProfileImageStatusRequest request) {
-
-                return ApiResponse.success(
-                                "Estado de la imagen de perfil actualizado",
-                                profileImageService.updateActive(
-                                                profileImageId,
-                                                request));
-        }
-
         @DeleteMapping("/{profileImageId}")
         @PreAuthorize("hasRole('ADMIN')")
         public ApiResponse<Void> delete(
                         @PathVariable Long profileImageId) {
 
-                profileImageService.delete(
-                                profileImageId);
+                profileImageService.delete(profileImageId);
 
                 return ApiResponse.success(
                                 "Imagen de perfil eliminada",

@@ -1,3 +1,5 @@
+// @/modules/user/mapper/ProfileImageMapper.java
+
 package com.finance.backend.modules.user.mapper;
 
 import com.finance.backend.modules.user.dto.profileimage.ProfileImageResponse;
@@ -17,7 +19,6 @@ public final class ProfileImageMapper {
         return new ProfileImageResponse(
                 profileImage.getProfileImageId(),
                 profileImage.getName(),
-                backendUrl + IMAGE_URL_PREFIX + profileImage.getFileName(),
-                profileImage.getActive());
+                backendUrl + IMAGE_URL_PREFIX + profileImage.getFileName());
     }
 }

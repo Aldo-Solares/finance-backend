@@ -4,10 +4,10 @@ import com.finance.backend.exception.ConflictException;
 import com.finance.backend.exception.ResourceNotFoundException;
 import com.finance.backend.modules.user.dto.profileimage.ProfileImageResponse;
 import com.finance.backend.modules.user.dto.profileimage.UpdateProfileImageRequest;
-import com.finance.backend.modules.user.dto.profileimage.UpdateProfileImageStatusRequest;
 import com.finance.backend.modules.user.mapper.ProfileImageMapper;
 import com.finance.backend.modules.user.model.ProfileImage;
 import com.finance.backend.modules.user.repository.ProfileImageRepository;
+import com.finance.backend.modules.user.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -29,15 +29,18 @@ public class ProfileImageService {
         private static final long MAX_FILE_SIZE = 25 * 1024 * 1024;
 
         private final ProfileImageRepository profileImageRepository;
+        private final UserRepository userRepository;
         private final Path storageDirectory;
         private final String backendUrl;
 
         public ProfileImageService(
                         ProfileImageRepository profileImageRepository,
+                        UserRepository userRepository,
                         @Value("${app.storage.profile-image-directory:uploads/profile-images}") String storageDirectory,
                         @Value("${app.backend-url:http://localhost:9000}") String backendUrl) {
 
                 this.profileImageRepository = profileImageRepository;
+                this.userRepository = userRepository;
 
                 this.storageDirectory = Paths.get(storageDirectory)
                                 .toAbsolutePath()
@@ -49,22 +52,9 @@ public class ProfileImageService {
         }
 
         @Transactional(readOnly = true)
-        public List<ProfileImageResponse> findActive() {
-
-                return profileImageRepository
-                                .findByActiveTrueOrderByNameAsc()
-                                .stream()
-                                .map(profileImage -> ProfileImageMapper.toResponse(
-                                                profileImage,
-                                                backendUrl))
-                                .toList();
-        }
-
-        @Transactional(readOnly = true)
         public List<ProfileImageResponse> findAll() {
-
                 return profileImageRepository
-                                .findAll()
+                                .findAllByOrderByNameAsc()
                                 .stream()
                                 .map(profileImage -> ProfileImageMapper.toResponse(
                                                 profileImage,
@@ -81,7 +71,7 @@ public class ProfileImageService {
 
                 if (profileImageRepository.count() >= MAX_PROFILE_IMAGES) {
                         throw new ConflictException(
-                                        "El catálogo no puede tener más de 20 imágenes");
+                                        "El catálogo no puede tener más de 50 imágenes");
                 }
 
                 String normalizedName = name == null
@@ -127,7 +117,6 @@ public class ProfileImageService {
 
                 profileImage.setName(normalizedName);
                 profileImage.setFileName(fileName);
-                profileImage.setActive(true);
 
                 try {
                         ProfileImage savedProfileImage = profileImageRepository.save(profileImage);
@@ -143,38 +132,12 @@ public class ProfileImageService {
         }
 
         @Transactional
-        public ProfileImageResponse updateActive(
-                        Long profileImageId,
-                        UpdateProfileImageStatusRequest request) {
-
-                ProfileImage profileImage = getProfileImageById(profileImageId);
-
-                profileImage.setActive(request.active());
-
-                ProfileImage savedProfileImage = profileImageRepository.save(profileImage);
-
-                return ProfileImageMapper.toResponse(
-                                savedProfileImage,
-                                backendUrl);
-        }
-
-        @Transactional
         public void delete(Long profileImageId) {
 
                 ProfileImage profileImage = getProfileImageById(profileImageId);
 
-                long usersUsingProfileImage = profileImageRepository.countUsersByProfileImageId(
+                userRepository.clearProfileImageReferences(
                                 profileImageId);
-
-                /*
-                 * Si la imagen está asignada a usuarios,
-                 * no se elimina físicamente. Se desactiva.
-                 */
-                if (usersUsingProfileImage > 0) {
-                        profileImage.setActive(false);
-                        profileImageRepository.save(profileImage);
-                        return;
-                }
 
                 profileImageRepository.delete(profileImage);
 
@@ -191,20 +154,7 @@ public class ProfileImageService {
         }
 
         @Transactional(readOnly = true)
-        public ProfileImage getActiveProfileImageById(
-                        Long profileImageId) {
-
-                ProfileImage profileImage = getProfileImageById(profileImageId);
-
-                if (!profileImage.getActive()) {
-                        throw new ConflictException(
-                                        "La imagen seleccionada no está disponible");
-                }
-
-                return profileImage;
-        }
-
-        private ProfileImage getProfileImageById(
+        public ProfileImage getProfileImageById(
                         Long profileImageId) {
 
                 return profileImageRepository
@@ -223,7 +173,7 @@ public class ProfileImageService {
 
                 if (file.getSize() > MAX_FILE_SIZE) {
                         throw new IllegalArgumentException(
-                                        "La imagen no puede superar los 5 MB");
+                                        "La imagen no puede superar los 25 MB");
                 }
 
                 String extension = getExtension(file);
@@ -301,8 +251,8 @@ public class ProfileImageService {
                                 .equalsIgnoreCase(normalizedName);
 
                 if (nameChanged
-                                && profileImageRepository.existsByNameIgnoreCase(
-                                                normalizedName)) {
+                                && profileImageRepository
+                                                .existsByNameIgnoreCase(normalizedName)) {
 
                         throw new ConflictException(
                                         "Ya existe una imagen con ese nombre");
@@ -316,5 +266,4 @@ public class ProfileImageService {
                                 savedProfileImage,
                                 backendUrl);
         }
-
 }

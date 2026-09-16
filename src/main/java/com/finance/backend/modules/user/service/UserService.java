@@ -144,7 +144,6 @@ public class UserService {
         // ===================
         // ACTUALIZACIÓN DE IMAGEN DE PERFIL
         // ===================
-
         @Transactional
         public UserResponse updateProfileImage(
                         String email,
@@ -153,9 +152,8 @@ public class UserService {
                 User currentUser = getUserByEmail(email);
 
                 currentUser.setProfileImage(
-                                profileImageService
-                                                .getActiveProfileImageById(
-                                                                profileImageId));
+                                profileImageService.getProfileImageById(
+                                                profileImageId));
 
                 return UserMapper.toResponse(
                                 userRepository.save(currentUser),

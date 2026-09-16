@@ -1,5 +1,3 @@
-// @/modules/user/controller/UserSettingsController.java
-
 package com.finance.backend.modules.user.controller;
 
 import com.finance.backend.dto.ApiResponse;
