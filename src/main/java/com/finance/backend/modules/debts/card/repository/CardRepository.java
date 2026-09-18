@@ -11,8 +11,6 @@ public interface CardRepository
 
         List<Card> findAllByOrderByBankAscCardNameAsc();
 
-        List<Card> findByActiveTrueOrderByBankAscCardNameAsc();
-
         Optional<Card> findByBankIgnoreCaseAndCardNameIgnoreCase(
                         String bank,
                         String cardName);

@@ -22,9 +22,6 @@ public class TradingAccount {
     @JoinColumn(name = "currency_id", nullable = false)
     private Currency currency;
 
-    @Column(nullable = false)
-    private Boolean active;
-
     public TradingAccount() {
     }
 
@@ -74,17 +71,5 @@ public class TradingAccount {
 
     public void setCurrency(Currency currency) {
         this.currency = currency;
-    }
-
-    // ===================
-    // ACTIVE
-    // ===================
-
-    public Boolean getActive() {
-        return active;
-    }
-
-    public void setActive(Boolean active) {
-        this.active = active;
     }
 }

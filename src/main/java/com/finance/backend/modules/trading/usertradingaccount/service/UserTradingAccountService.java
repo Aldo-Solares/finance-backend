@@ -20,162 +20,162 @@ import java.util.List;
 @Transactional
 public class UserTradingAccountService {
 
-    private final UserTradingAccountRepository userTradingAccountRepository;
-    private final TradingAccountRepository tradingAccountRepository;
-    private final UserRepository userRepository;
+        private final UserTradingAccountRepository userTradingAccountRepository;
+        private final TradingAccountRepository tradingAccountRepository;
+        private final UserRepository userRepository;
 
-    public UserTradingAccountService(
-            UserTradingAccountRepository userTradingAccountRepository,
-            TradingAccountRepository tradingAccountRepository,
-            UserRepository userRepository) {
+        public UserTradingAccountService(
+                        UserTradingAccountRepository userTradingAccountRepository,
+                        TradingAccountRepository tradingAccountRepository,
+                        UserRepository userRepository) {
 
-        this.userTradingAccountRepository = userTradingAccountRepository;
-        this.tradingAccountRepository = tradingAccountRepository;
-        this.userRepository = userRepository;
-    }
+                this.userTradingAccountRepository = userTradingAccountRepository;
+                this.tradingAccountRepository = tradingAccountRepository;
+                this.userRepository = userRepository;
+        }
 
-    // ===================
-    // QUERIES
-    // ===================
+        // ===================
+        // QUERIES
+        // ===================
 
-    @Transactional(readOnly = true)
-    public List<UserTradingAccountResponse> findAll(
-            String email) {
+        @Transactional(readOnly = true)
+        public List<UserTradingAccountResponse> findAll(
+                        String email) {
 
-        return userTradingAccountRepository
-                .findByUserEmailIgnoreCaseOrderByUserTradingAccountIdAsc(
-                        email)
-                .stream()
-                .map(UserTradingAccountMapper::toResponse)
-                .toList();
-    }
+                return userTradingAccountRepository
+                                .findByUserEmailIgnoreCaseOrderByUserTradingAccountIdAsc(
+                                                email)
+                                .stream()
+                                .map(UserTradingAccountMapper::toResponse)
+                                .toList();
+        }
 
-    @Transactional(readOnly = true)
-    public UserTradingAccountResponse findById(
-            Long userTradingAccountId,
-            String email) {
+        @Transactional(readOnly = true)
+        public UserTradingAccountResponse findById(
+                        Long userTradingAccountId,
+                        String email) {
 
-        return UserTradingAccountMapper.toResponse(
-                getEntity(
-                        userTradingAccountId,
-                        email));
-    }
+                return UserTradingAccountMapper.toResponse(
+                                getEntity(
+                                                userTradingAccountId,
+                                                email));
+        }
 
-    // ===================
-    // CREATE
-    // ===================
+        // ===================
+        // CREATE
+        // ===================
 
-    public UserTradingAccountResponse create(
-            CreateUserTradingAccountRequest request,
-            String email) {
+        public UserTradingAccountResponse create(
+                        CreateUserTradingAccountRequest request,
+                        String email) {
 
-        User user = getUserByEmail(
-                email);
+                User user = getUserByEmail(
+                                email);
 
-        TradingAccount tradingAccount = getTradingAccount(
-                request.tradingAccountId());
+                TradingAccount tradingAccount = getTradingAccount(
+                                request.tradingAccountId());
 
-        UserTradingAccount userTradingAccount = UserTradingAccountMapper.toEntity(
-                request,
-                user,
-                tradingAccount);
+                UserTradingAccount userTradingAccount = UserTradingAccountMapper.toEntity(
+                                request,
+                                user,
+                                tradingAccount);
 
-        UserTradingAccount savedUserTradingAccount = userTradingAccountRepository.save(
-                userTradingAccount);
+                UserTradingAccount savedUserTradingAccount = userTradingAccountRepository.save(
+                                userTradingAccount);
 
-        return UserTradingAccountMapper.toResponse(
-                savedUserTradingAccount);
-    }
+                return UserTradingAccountMapper.toResponse(
+                                savedUserTradingAccount);
+        }
 
-    // ===================
-    // UPDATE
-    // ===================
+        // ===================
+        // UPDATE
+        // ===================
 
-    public UserTradingAccountResponse update(
-            Long userTradingAccountId,
-            UpdateUserTradingAccountRequest request,
-            String email) {
+        public UserTradingAccountResponse update(
+                        Long userTradingAccountId,
+                        UpdateUserTradingAccountRequest request,
+                        String email) {
 
-        UserTradingAccount userTradingAccount = getEntity(
-                userTradingAccountId,
-                email);
+                UserTradingAccount userTradingAccount = getEntity(
+                                userTradingAccountId,
+                                email);
 
-        TradingAccount tradingAccount = getTradingAccount(
-                request.tradingAccountId());
+                TradingAccount tradingAccount = getTradingAccount(
+                                request.tradingAccountId());
 
-        UserTradingAccountMapper.updateEntity(
-                userTradingAccount,
-                request,
-                tradingAccount);
+                UserTradingAccountMapper.updateEntity(
+                                userTradingAccount,
+                                request,
+                                tradingAccount);
 
-        UserTradingAccount savedUserTradingAccount = userTradingAccountRepository.save(
-                userTradingAccount);
+                UserTradingAccount savedUserTradingAccount = userTradingAccountRepository.save(
+                                userTradingAccount);
 
-        return UserTradingAccountMapper.toResponse(
-                savedUserTradingAccount);
-    }
+                return UserTradingAccountMapper.toResponse(
+                                savedUserTradingAccount);
+        }
 
-    // ===================
-    // DELETE
-    // ===================
+        // ===================
+        // DELETE
+        // ===================
 
-    public void delete(
-            Long userTradingAccountId,
-            String email) {
+        public void delete(
+                        Long userTradingAccountId,
+                        String email) {
 
-        UserTradingAccount userTradingAccount = getEntity(
-                userTradingAccountId,
-                email);
+                UserTradingAccount userTradingAccount = getEntity(
+                                userTradingAccountId,
+                                email);
 
-        userTradingAccountRepository.delete(
-                userTradingAccount);
-    }
+                userTradingAccountRepository.delete(
+                                userTradingAccount);
+        }
 
-    // ===================
-    // ENTITY
-    // ===================
+        // ===================
+        // ENTITY
+        // ===================
 
-    @Transactional(readOnly = true)
-    public UserTradingAccount getEntity(
-            Long userTradingAccountId,
-            String email) {
+        @Transactional(readOnly = true)
+        public UserTradingAccount getEntity(
+                        Long userTradingAccountId,
+                        String email) {
 
-        return userTradingAccountRepository
-                .findByUserTradingAccountIdAndUserEmailIgnoreCase(
-                        userTradingAccountId,
-                        email)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException(
-                                "Cuenta de trading del usuario no encontrada"));
-    }
+                return userTradingAccountRepository
+                                .findByUserTradingAccountIdAndUserEmailIgnoreCase(
+                                                userTradingAccountId,
+                                                email)
+                                .orElseThrow(
+                                                () -> new ResourceNotFoundException(
+                                                                "Cuenta de trading del usuario no encontrada"));
+        }
 
-    // ===================
-    // TRADING ACCOUNT
-    // ===================
+        // ===================
+        // TRADING ACCOUNT
+        // ===================
 
-    private TradingAccount getTradingAccount(
-            Long tradingAccountId) {
+        private TradingAccount getTradingAccount(
+                        Long tradingAccountId) {
 
-        return tradingAccountRepository
-                .findById(
-                        tradingAccountId)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException(
-                                "Cuenta de trading no encontrada"));
-    }
+                return tradingAccountRepository
+                                .findById(
+                                                tradingAccountId)
+                                .orElseThrow(
+                                                () -> new ResourceNotFoundException(
+                                                                "Cuenta de trading no encontrada"));
+        }
 
-    // ===================
-    // USER
-    // ===================
+        // ===================
+        // USER
+        // ===================
 
-    private User getUserByEmail(
-            String email) {
+        private User getUserByEmail(
+                        String email) {
 
-        return userRepository
-                .findByEmailIgnoreCase(
-                        email)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException(
-                                "Usuario no encontrado"));
-    }
+                return userRepository
+                                .findByEmailIgnoreCase(
+                                                email)
+                                .orElseThrow(
+                                                () -> new ResourceNotFoundException(
+                                                                "Usuario no encontrado"));
+        }
 }

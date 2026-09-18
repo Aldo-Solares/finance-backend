@@ -117,6 +117,19 @@ public class InstrumentService {
                 return InstrumentMapper.toResponse(
                                 updatedInstrument);
         }
+        // ===================
+        // DELETE
+        // ===================
+
+        public void delete(
+                        Long instrumentId) {
+
+                Instrument instrument = getEntity(
+                                instrumentId);
+
+                instrumentRepository.delete(
+                                instrument);
+        }
 
         // ===================
         // ENTITY

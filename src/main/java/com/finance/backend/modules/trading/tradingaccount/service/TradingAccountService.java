@@ -1,5 +1,3 @@
-// modules/trading/tradingaccount/service/TradingAccountService.java
-
 package com.finance.backend.modules.trading.tradingaccount.service;
 
 import com.finance.backend.exception.ResourceNotFoundException;
@@ -11,6 +9,8 @@ import com.finance.backend.modules.trading.tradingaccount.dto.UpdateTradingAccou
 import com.finance.backend.modules.trading.tradingaccount.mapper.TradingAccountMapper;
 import com.finance.backend.modules.trading.tradingaccount.model.TradingAccount;
 import com.finance.backend.modules.trading.tradingaccount.repository.TradingAccountRepository;
+import com.finance.backend.modules.trading.usertradingaccount.model.UserTradingAccount;
+import com.finance.backend.modules.trading.usertradingaccount.repository.UserTradingAccountRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,13 +22,16 @@ public class TradingAccountService {
 
         private final TradingAccountRepository tradingAccountRepository;
         private final CurrencyRepository currencyRepository;
+        private final UserTradingAccountRepository userTradingAccountRepository;
 
         public TradingAccountService(
                         TradingAccountRepository tradingAccountRepository,
-                        CurrencyRepository currencyRepository) {
+                        CurrencyRepository currencyRepository,
+                        UserTradingAccountRepository userTradingAccountRepository) {
 
                 this.tradingAccountRepository = tradingAccountRepository;
                 this.currencyRepository = currencyRepository;
+                this.userTradingAccountRepository = userTradingAccountRepository;
         }
 
         // ===================
@@ -82,7 +85,8 @@ public class TradingAccountService {
                         Long tradingAccountId,
                         UpdateTradingAccountRequest request) {
 
-                TradingAccount tradingAccount = getEntity(tradingAccountId);
+                TradingAccount tradingAccount = getEntity(
+                                tradingAccountId);
 
                 Currency currency = getCurrency(
                                 request.currencyId());
@@ -106,7 +110,15 @@ public class TradingAccountService {
         public void delete(
                         Long tradingAccountId) {
 
-                TradingAccount tradingAccount = getEntity(tradingAccountId);
+                TradingAccount tradingAccount = getEntity(
+                                tradingAccountId);
+
+                List<UserTradingAccount> userTradingAccounts = userTradingAccountRepository
+                                .findByTradingAccountTradingAccountId(
+                                                tradingAccountId);
+
+                userTradingAccountRepository.deleteAll(
+                                userTradingAccounts);
 
                 tradingAccountRepository.delete(
                                 tradingAccount);

@@ -16,51 +16,62 @@ import java.util.List;
 @RequestMapping("/api/instruments")
 public class InstrumentController {
 
-    private final InstrumentService instrumentService;
+        private final InstrumentService instrumentService;
 
-    public InstrumentController(
-            InstrumentService instrumentService) {
-        this.instrumentService = instrumentService;
-    }
+        public InstrumentController(
+                        InstrumentService instrumentService) {
+                this.instrumentService = instrumentService;
+        }
 
-    @GetMapping
-    public ApiResponse<List<InstrumentResponse>> findAll() {
-        return ApiResponse.success(
-                instrumentService.findAll());
-    }
+        @GetMapping
+        public ApiResponse<List<InstrumentResponse>> findAll() {
+                return ApiResponse.success(
+                                instrumentService.findAll());
+        }
 
-    @GetMapping("/{instrumentId}")
-    public ApiResponse<InstrumentResponse> findById(
-            @PathVariable Long instrumentId) {
+        @GetMapping("/{instrumentId}")
+        public ApiResponse<InstrumentResponse> findById(
+                        @PathVariable Long instrumentId) {
 
-        return ApiResponse.success(
-                instrumentService.findById(
-                        instrumentId));
-    }
+                return ApiResponse.success(
+                                instrumentService.findById(
+                                                instrumentId));
+        }
 
-    @PostMapping
-    public ResponseEntity<ApiResponse<InstrumentResponse>> create(
-            @Valid @RequestBody CreateInstrumentRequest request) {
+        @PostMapping
+        public ResponseEntity<ApiResponse<InstrumentResponse>> create(
+                        @Valid @RequestBody CreateInstrumentRequest request) {
 
-        InstrumentResponse instrument = instrumentService.create(request);
+                InstrumentResponse instrument = instrumentService.create(request);
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(
-                        ApiResponse.success(
-                                "Instrumento creado",
-                                instrument));
-    }
+                return ResponseEntity
+                                .status(HttpStatus.CREATED)
+                                .body(
+                                                ApiResponse.success(
+                                                                "Instrumento creado",
+                                                                instrument));
+        }
 
-    @PutMapping("/{instrumentId}")
-    public ApiResponse<InstrumentResponse> update(
-            @PathVariable Long instrumentId,
-            @Valid @RequestBody UpdateInstrumentRequest request) {
+        @PutMapping("/{instrumentId}")
+        public ApiResponse<InstrumentResponse> update(
+                        @PathVariable Long instrumentId,
+                        @Valid @RequestBody UpdateInstrumentRequest request) {
 
-        return ApiResponse.success(
-                "Instrumento actualizado",
-                instrumentService.update(
-                        instrumentId,
-                        request));
-    }
+                return ApiResponse.success(
+                                "Instrumento actualizado",
+                                instrumentService.update(
+                                                instrumentId,
+                                                request));
+        }
+
+        @DeleteMapping("/{instrumentId}")
+        public ApiResponse<Void> delete(
+                        @PathVariable Long instrumentId) {
+
+                instrumentService.delete(instrumentId);
+
+                return ApiResponse.success(
+                                "Instrumento eliminado",
+                                null);
+        }
 }

@@ -15,4 +15,7 @@ public interface UserTradingAccountRepository
         Optional<UserTradingAccount> findByUserTradingAccountIdAndUserEmailIgnoreCase(
                         Long userTradingAccountId,
                         String email);
+
+        List<UserTradingAccount> findByTradingAccountTradingAccountId(
+                        Long tradingAccountId);
 }

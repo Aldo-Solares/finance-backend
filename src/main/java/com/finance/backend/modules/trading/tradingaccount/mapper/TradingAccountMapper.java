@@ -24,7 +24,6 @@ public final class TradingAccountMapper {
                 tradingAccount.setInstitution(request.institution());
                 tradingAccount.setName(request.name());
                 tradingAccount.setCurrency(currency);
-                tradingAccount.setActive(request.active());
 
                 return tradingAccount;
         }
@@ -41,7 +40,6 @@ public final class TradingAccountMapper {
                 tradingAccount.setInstitution(request.institution());
                 tradingAccount.setName(request.name());
                 tradingAccount.setCurrency(currency);
-                tradingAccount.setActive(request.active());
         }
 
         // ===================
@@ -59,7 +57,6 @@ public final class TradingAccountMapper {
                                 tradingAccount.getName(),
                                 currency.getCurrencyId(),
                                 currency.getCode(),
-                                currency.getSymbol(),
-                                tradingAccount.getActive());
+                                currency.getSymbol());
         }
 }

@@ -1,5 +1,3 @@
-// modules/trading/trade/mapper/TradeMapper.java
-
 package com.finance.backend.modules.trading.trade.mapper;
 
 import com.finance.backend.modules.trading.instrument.model.Instrument;

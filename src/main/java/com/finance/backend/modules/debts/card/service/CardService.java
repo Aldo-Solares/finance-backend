@@ -40,20 +40,6 @@ public class CardService {
         }
 
         // ===================
-        // FIND ACTIVE
-        // ===================
-
-        @Transactional(readOnly = true)
-        public List<CardResponse> findAllActive() {
-
-                return cardRepository
-                                .findByActiveTrueOrderByBankAscCardNameAsc()
-                                .stream()
-                                .map(CardMapper::toResponse)
-                                .toList();
-        }
-
-        // ===================
         // FIND BY ID
         // ===================
 

@@ -21,9 +21,6 @@ public final class CardMapper {
                 card.setCardName(
                                 request.cardName().trim());
 
-                card.setActive(
-                                request.active());
-
                 return card;
         }
 
@@ -37,8 +34,6 @@ public final class CardMapper {
                 card.setCardName(
                                 request.cardName().trim());
 
-                card.setActive(
-                                request.active());
         }
 
         public static CardResponse toResponse(
@@ -47,7 +42,6 @@ public final class CardMapper {
                 return new CardResponse(
                                 card.getCardId(),
                                 card.getBank(),
-                                card.getCardName(),
-                                card.getActive());
+                                card.getCardName());
         }
 }

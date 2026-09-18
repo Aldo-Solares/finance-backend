@@ -35,17 +35,6 @@ public class CardController {
         }
 
         // ===================
-        // FIND ACTIVE
-        // ===================
-
-        @GetMapping("/active")
-        public ApiResponse<List<CardResponse>> findAllActive() {
-
-                return ApiResponse.success(
-                                cardService.findAllActive());
-        }
-
-        // ===================
         // FIND BY ID
         // ===================
 

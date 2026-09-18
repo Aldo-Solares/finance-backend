@@ -4,11 +4,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record UpdateTradingAccountRequest(
-        @NotBlank String institution,
+                @NotBlank String institution,
 
-        @NotBlank String name,
+                @NotBlank String name,
 
-        @NotNull Long currencyId,
-
-        @NotNull Boolean active) {
+                @NotNull Long currencyId) {
 }
