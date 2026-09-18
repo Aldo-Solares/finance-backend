@@ -1,5 +1,6 @@
 package com.finance.backend.modules.debts.concept.service;
 
+import com.finance.backend.exception.ConflictException;
 import com.finance.backend.exception.ResourceNotFoundException;
 import com.finance.backend.modules.debts.concept.dto.ConceptResponse;
 import com.finance.backend.modules.debts.concept.dto.CreateConceptRequest;
@@ -7,7 +8,7 @@ import com.finance.backend.modules.debts.concept.dto.UpdateConceptRequest;
 import com.finance.backend.modules.debts.concept.mapper.ConceptMapper;
 import com.finance.backend.modules.debts.concept.model.Concept;
 import com.finance.backend.modules.debts.concept.repository.ConceptRepository;
-
+import com.finance.backend.modules.debts.statemententry.repository.StatementEntryRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,13 +17,22 @@ import java.util.List;
 public class ConceptService {
 
         private final ConceptRepository conceptRepository;
+        private final StatementEntryRepository statementEntryRepository;
 
         public ConceptService(
-                        ConceptRepository conceptRepository) {
+                        ConceptRepository conceptRepository,
+                        StatementEntryRepository statementEntryRepository) {
+
                 this.conceptRepository = conceptRepository;
+                this.statementEntryRepository = statementEntryRepository;
         }
 
+        // ===================
+        // QUERIES
+        // ===================
+
         public List<ConceptResponse> findAll() {
+
                 return conceptRepository
                                 .findAll()
                                 .stream()
@@ -32,44 +42,78 @@ public class ConceptService {
 
         public ConceptResponse findById(
                         Long conceptId) {
+
                 return ConceptMapper.toResponse(
                                 getConcept(conceptId));
         }
 
+        // ===================
+        // CREATE
+        // ===================
+
         public ConceptResponse create(
                         CreateConceptRequest request) {
+
                 Concept concept = ConceptMapper.toEntity(request);
 
-                Concept savedConcept = conceptRepository.save(concept);
+                Concept savedConcept = conceptRepository.save(
+                                concept);
 
                 return ConceptMapper.toResponse(
                                 savedConcept);
         }
 
+        // ===================
+        // UPDATE
+        // ===================
+
         public ConceptResponse update(
                         Long conceptId,
                         UpdateConceptRequest request) {
+
                 Concept concept = getConcept(conceptId);
 
                 ConceptMapper.updateEntity(
                                 concept,
                                 request);
 
-                Concept updatedConcept = conceptRepository.save(concept);
+                Concept updatedConcept = conceptRepository.save(
+                                concept);
 
                 return ConceptMapper.toResponse(
                                 updatedConcept);
         }
 
+        // ===================
+        // DELETE
+        // ===================
+
         public void delete(
                         Long conceptId) {
-                Concept concept = getConcept(conceptId);
 
-                conceptRepository.delete(concept);
+                Concept concept = getConcept(
+                                conceptId);
+
+                boolean used = statementEntryRepository
+                                .existsByConceptConceptId(
+                                                conceptId);
+
+                if (used) {
+                        throw new ConflictException(
+                                        "El concepto está siendo utilizado por uno o más movimientos");
+                }
+
+                conceptRepository.delete(
+                                concept);
         }
+
+        // ===================
+        // ENTITY
+        // ===================
 
         private Concept getConcept(
                         Long conceptId) {
+
                 return conceptRepository
                                 .findById(conceptId)
                                 .orElseThrow(
