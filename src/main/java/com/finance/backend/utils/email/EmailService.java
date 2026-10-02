@@ -1,24 +1,23 @@
 package com.finance.backend.utils.email;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
-
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+
+import com.resend.Resend;
+import com.resend.core.exception.ResendException;
+import com.resend.services.emails.model.CreateEmailOptions;
 
 @Service
 public class EmailService {
 
-    private final JavaMailSender mailSender;
+    private final Resend resend;
     private final String from;
 
     public EmailService(
-            JavaMailSender mailSender,
-            @Value("${spring.mail.username}") String from) {
+            @Value("${RESEND_API_KEY}") String apiKey,
+            @Value("${RESEND_FROM}") String from) {
 
-        this.mailSender = mailSender;
+        this.resend = new Resend(apiKey);
         this.from = from;
     }
 
@@ -34,31 +33,22 @@ public class EmailService {
             String buttonText,
             String actionUrl) {
 
+        String html = buildActionEmail(
+                title,
+                message,
+                buttonText,
+                actionUrl);
+
+        CreateEmailOptions params = CreateEmailOptions.builder()
+                .from(from)
+                .to(to)
+                .subject(subject)
+                .html(html)
+                .build();
+
         try {
-
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
-
-            MimeMessageHelper helper = new MimeMessageHelper(
-                    mimeMessage,
-                    true,
-                    "UTF-8");
-
-            helper.setFrom(from);
-            helper.setTo(to);
-            helper.setSubject(subject);
-
-            String html = buildActionEmail(
-                    title,
-                    message,
-                    buttonText,
-                    actionUrl);
-
-            helper.setText(html, true);
-
-            mailSender.send(mimeMessage);
-
-        } catch (MessagingException exception) {
-
+            resend.emails().send(params);
+        } catch (ResendException exception) {
             throw new IllegalStateException(
                     "No fue posible enviar el correo",
                     exception);
