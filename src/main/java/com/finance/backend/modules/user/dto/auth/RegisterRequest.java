@@ -9,7 +9,7 @@ public record RegisterRequest(
 
         @NotBlank @Size(max = 100) String name,
 
-        @Size(max = 100) String lastName,
+        @NotBlank @Size(max = 100) String lastName,
 
         @Size(max = 100) String secondLastName,
 

@@ -37,7 +37,7 @@ public class UserService {
                         JwtService jwtService,
                         CustomUserDetailsService userDetailsService,
                         ProfileImageService profileImageService,
-                        @Value("${app.backend-url:http://localhost:9000}") String backendUrl) {
+                        @Value("${app.backend-url}") String backendUrl) {
 
                 this.userRepository = userRepository;
                 this.passwordEncoder = passwordEncoder;

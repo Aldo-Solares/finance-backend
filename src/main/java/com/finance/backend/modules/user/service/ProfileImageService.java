@@ -37,7 +37,7 @@ public class ProfileImageService {
                         ProfileImageRepository profileImageRepository,
                         UserRepository userRepository,
                         @Value("${app.storage.profile-image-directory:uploads/profile-images}") String storageDirectory,
-                        @Value("${app.backend-url:http://localhost:9000}") String backendUrl) {
+                        @Value("${app.backend-url}") String backendUrl) {
 
                 this.profileImageRepository = profileImageRepository;
                 this.userRepository = userRepository;

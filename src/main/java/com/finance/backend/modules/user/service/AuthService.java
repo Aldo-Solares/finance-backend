@@ -57,7 +57,7 @@ public class AuthService {
                         JwtService jwtService,
                         CustomUserDetailsService customUserDetailsService,
                         UserEmailService userEmailService,
-                        @Value("${app.backend-url:http://localhost:9000}") String backendUrl) {
+                        @Value("${app.backend-url") String backendUrl) {
 
                 this.userRepository = userRepository;
                 this.userSettingsRepository = userSettingsRepository;

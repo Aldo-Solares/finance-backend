@@ -10,11 +10,8 @@ public class StrongPasswordValidator
     public boolean isValid(
             String password,
             ConstraintValidatorContext context) {
-        if (password == null) {
-            return false;
-        }
 
-        if (password.length() < 8) {
+        if (password == null) {
             return false;
         }
 
@@ -23,7 +20,6 @@ public class StrongPasswordValidator
         boolean digit = false;
 
         for (char c : password.toCharArray()) {
-
             if (Character.isUpperCase(c)) {
                 upper = true;
             } else if (Character.isLowerCase(c)) {
@@ -33,8 +29,38 @@ public class StrongPasswordValidator
             }
         }
 
-        return upper
-                && lower
-                && digit;
+        if (password.length() < 8) {
+            context.disableDefaultConstraintViolation();
+            context.buildConstraintViolationWithTemplate(
+                    "La contraseña debe tener al menos 8 caracteres").addConstraintViolation();
+
+            return false;
+        }
+
+        if (!upper) {
+            context.disableDefaultConstraintViolation();
+            context.buildConstraintViolationWithTemplate(
+                    "La contraseña debe contener al menos una letra mayúscula").addConstraintViolation();
+
+            return false;
+        }
+
+        if (!lower) {
+            context.disableDefaultConstraintViolation();
+            context.buildConstraintViolationWithTemplate(
+                    "La contraseña debe contener al menos una letra minúscula").addConstraintViolation();
+
+            return false;
+        }
+
+        if (!digit) {
+            context.disableDefaultConstraintViolation();
+            context.buildConstraintViolationWithTemplate(
+                    "La contraseña debe contener al menos un número").addConstraintViolation();
+
+            return false;
+        }
+
+        return true;
     }
 }

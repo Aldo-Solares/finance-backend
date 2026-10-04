@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -129,6 +128,8 @@ public class GlobalExceptionHandler {
         // ===================
         // HANDLER
         // ===================
+        // @/exception/GlobalExceptionHandler.java
+
         @ExceptionHandler(MethodArgumentNotValidException.class)
         public ResponseEntity<ApiResponse<Void>> handleValidationException(
                         MethodArgumentNotValidException exception) {
@@ -137,15 +138,7 @@ public class GlobalExceptionHandler {
                                 .getBindingResult()
                                 .getAllErrors()
                                 .stream()
-                                .map(error -> {
-                                        if (error instanceof FieldError fieldError) {
-                                                return fieldError.getField()
-                                                                + ": "
-                                                                + fieldError.getDefaultMessage();
-                                        }
-
-                                        return error.getDefaultMessage();
-                                })
+                                .map(error -> error.getDefaultMessage())
                                 .filter(Objects::nonNull)
                                 .distinct()
                                 .collect(Collectors.joining("; "));
