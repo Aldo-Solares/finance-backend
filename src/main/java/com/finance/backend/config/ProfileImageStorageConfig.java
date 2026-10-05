@@ -9,27 +9,27 @@ import java.nio.file.Paths;
 
 @Configuration
 public class ProfileImageStorageConfig
-        implements WebMvcConfigurer {
+                implements WebMvcConfigurer {
 
-    private final String storageDirectory;
+        private final String storageDirectory;
 
-    public ProfileImageStorageConfig(
-            @Value("${app.storage.profile-image-directory:uploads/profile-images}") String storageDirectory) {
+        public ProfileImageStorageConfig(
+                        @Value("${APP_STORAGE_PROFILE_IMAGE_DIRECTORY") String storageDirectory) {
 
-        this.storageDirectory = Paths.get(storageDirectory)
-                .toAbsolutePath()
-                .normalize()
-                .toString();
-    }
+                this.storageDirectory = Paths.get(storageDirectory)
+                                .toAbsolutePath()
+                                .normalize()
+                                .toString();
+        }
 
-    @Override
-    public void addResourceHandlers(
-            ResourceHandlerRegistry registry) {
+        @Override
+        public void addResourceHandlers(
+                        ResourceHandlerRegistry registry) {
 
-        registry
-                .addResourceHandler(
-                        "/uploads/profile-images/**")
-                .addResourceLocations(
-                        "file:" + storageDirectory + "/");
-    }
+                registry
+                                .addResourceHandler(
+                                                "/uploads/profile-images/**")
+                                .addResourceLocations(
+                                                "file:" + storageDirectory + "/");
+        }
 }
