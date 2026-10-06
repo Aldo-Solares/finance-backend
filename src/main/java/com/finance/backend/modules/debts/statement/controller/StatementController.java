@@ -8,10 +8,15 @@ import com.finance.backend.modules.debts.statement.dto.StatementDateSuggestionRe
 import com.finance.backend.modules.debts.statement.dto.StatementResponse;
 import com.finance.backend.modules.debts.statement.dto.UpdateStatementRequest;
 import com.finance.backend.modules.debts.statement.service.StatementService;
+import com.finance.backend.modules.debts.statement.service.StatementExcelExportService;
 import jakarta.validation.Valid;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,11 +26,14 @@ import java.util.List;
 public class StatementController {
 
         private final StatementService statementService;
+        private final StatementExcelExportService statementExcelExportService;
 
         public StatementController(
-                        StatementService statementService) {
+                        StatementService statementService,
+                        StatementExcelExportService statementExcelExportService) {
 
                 this.statementService = statementService;
+                this.statementExcelExportService = statementExcelExportService;
         }
 
         @GetMapping
@@ -46,6 +54,29 @@ public class StatementController {
                                 statementService.findById(
                                                 statementId,
                                                 authentication.getName()));
+        }
+
+        @GetMapping("/{statementId}/export")
+        @PreAuthorize("hasRole('ADMIN')")
+        public ResponseEntity<byte[]> exportExcel(
+                        @PathVariable Long statementId,
+                        Authentication authentication) {
+
+                var file = statementExcelExportService.export(
+                                statementId,
+                                authentication.getName());
+
+                return ResponseEntity.ok()
+                                .contentType(MediaType.parseMediaType(
+                                                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                                .header(
+                                                HttpHeaders.CONTENT_DISPOSITION,
+                                                ContentDisposition.attachment()
+                                                                .filename(file.filename())
+                                                                .build()
+                                                                .toString())
+                                .contentLength(file.content().length)
+                                .body(file.content());
         }
 
         @GetMapping("/user-card/{userCardId}")

@@ -38,7 +38,7 @@ PostgreSQL
 
 El ETL no escribe directamente en PostgreSQL.
 
-Spring Boot no procesa archivos Excel.
+Spring Boot no procesa archivos Excel de entrada del ETL; genera descargas XLSX de estados de cuenta.
 
 ## Requisitos
 
