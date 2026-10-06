@@ -2,6 +2,7 @@
 
 package com.finance.backend.modules.debts.statemententry.service;
 
+import com.finance.backend.exception.BadRequestException;
 import com.finance.backend.exception.ResourceNotFoundException;
 import com.finance.backend.modules.debts.concept.model.Concept;
 import com.finance.backend.modules.debts.concept.repository.ConceptRepository;
@@ -19,6 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 @Service
@@ -208,6 +211,37 @@ public class StatementEntryService {
 
                 return StatementEntryMapper.toResponse(
                                 updatedEntry);
+        }
+
+        // ===================
+        // PAY SELECTED
+        // ===================
+
+        public List<StatementEntryResponse> paySelected(
+                        List<Long> entryIds,
+                        String email) {
+
+                if (entryIds == null || entryIds.isEmpty()) {
+                        throw new BadRequestException(
+                                        "Selecciona al menos un movimiento");
+                }
+
+                if (entryIds.stream().anyMatch(entryId -> entryId == null || entryId <= 0)) {
+                        throw new BadRequestException(
+                                        "Los movimientos seleccionados no son válidos");
+                }
+
+                List<StatementEntry> entries = new ArrayList<>();
+                for (Long entryId : new LinkedHashSet<>(entryIds)) {
+                        StatementEntry entry = getOwnedEntry(entryId, email);
+                        entry.setPaid(true);
+                        entries.add(entry);
+                }
+
+                return statementEntryRepository.saveAll(entries)
+                                .stream()
+                                .map(StatementEntryMapper::toResponse)
+                                .toList();
         }
 
         // ===================

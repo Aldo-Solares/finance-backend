@@ -2,6 +2,7 @@ package com.finance.backend.modules.debts.statemententry.controller;
 
 import com.finance.backend.dto.ApiResponse;
 import com.finance.backend.modules.debts.statemententry.dto.CreateStatementEntryRequest;
+import com.finance.backend.modules.debts.statemententry.dto.PaySelectedStatementEntriesRequest;
 import com.finance.backend.modules.debts.statemententry.dto.StatementEntryResponse;
 import com.finance.backend.modules.debts.statemententry.dto.UpdateStatementEntryRequest;
 import com.finance.backend.modules.debts.statemententry.service.StatementEntryService;
@@ -110,6 +111,18 @@ public class StatementEntryController {
                                 statementEntryService.update(
                                                 entryId,
                                                 request,
+                                                authentication.getName()));
+        }
+
+        @PatchMapping("/pay-selected")
+        public ApiResponse<List<StatementEntryResponse>> paySelected(
+                        Authentication authentication,
+                        @Valid @RequestBody PaySelectedStatementEntriesRequest request) {
+
+                return ApiResponse.success(
+                                "Movimientos marcados como pagados",
+                                statementEntryService.paySelected(
+                                                request.entryIds(),
                                                 authentication.getName()));
         }
 
