@@ -57,10 +57,17 @@ DB_URL=
 DB_USERNAME=
 DB_PASSWORD=
 JWT_SECRET=
-JWT_EXPIRATION=
+JWT_EXPIRATION=2592000000
+APP_STORAGE_PROFILE_IMAGE_DIRECTORY=/data/profile-images
 ```
 
 Las credenciales y secretos nunca deben almacenarse directamente en el código ni subirse al repositorio.
+
+`JWT_EXPIRATION` está expresado en milisegundos; `2592000000` equivale a 30 días.
+
+### Imágenes en Railway
+
+Las imágenes de perfil se guardan fuera de la base de datos. En Railway, conecta un Volume al servicio del backend con el mount path `/data` y configura `APP_STORAGE_PROFILE_IMAGE_DIRECTORY=/data/profile-images`. El directorio se crea al iniciar la aplicación y queda dentro del volumen persistente. No guardes estas cargas en el filesystem efímero del servicio ni en Vercel.
 
 ## Puerto
 
