@@ -22,6 +22,9 @@ public class Card {
     @Column(name = "card_name", nullable = false, length = 100)
     private String cardName;
 
+    @Column(name = "default_merchant", length = 100)
+    private String defaultMerchant;
+
     public Card() {
     }
 
@@ -47,5 +50,13 @@ public class Card {
 
     public void setCardName(String cardName) {
         this.cardName = cardName;
+    }
+
+    public String getDefaultMerchant() {
+        return defaultMerchant;
+    }
+
+    public void setDefaultMerchant(String defaultMerchant) {
+        this.defaultMerchant = defaultMerchant;
     }
 }

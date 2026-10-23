@@ -1,5 +1,3 @@
-// src/main/java/com/finance/backend/modules/debts/statement/controller/StatementController.java
-
 package com.finance.backend.modules.debts.statement.controller;
 
 import com.finance.backend.dto.ApiResponse;

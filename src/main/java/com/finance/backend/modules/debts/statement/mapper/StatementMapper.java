@@ -75,6 +75,7 @@ public final class StatementMapper {
                                 userCard.getCard().getCardId(),
                                 userCard.getCard().getBank(),
                                 userCard.getCard().getCardName(),
+                                userCard.getCard().getDefaultMerchant(),
                                 statement.getYear(),
                                 statement.getMonth(),
                                 statement.getPeriodStart(),

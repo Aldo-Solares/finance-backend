@@ -43,4 +43,11 @@ public interface StatementEntryRepository
 
         List<StatementEntry> findByStatementUserCardUserEmailIgnoreCase(
                         String email);
+
+        List<StatementEntry> findByMerchantIgnoreCase(
+                        String merchant);
+
+        List<StatementEntry> findByMerchantIgnoreCaseAndStatementUserCardUserEmailIgnoreCase(
+                        String merchant,
+                        String email);
 }

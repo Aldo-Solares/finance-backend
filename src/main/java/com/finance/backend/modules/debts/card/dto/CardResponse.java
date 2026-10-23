@@ -3,5 +3,6 @@ package com.finance.backend.modules.debts.card.dto;
 public record CardResponse(
         Long cardId,
         String bank,
-        String cardName) {
+        String cardName,
+        String defaultMerchant) {
 }

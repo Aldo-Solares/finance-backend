@@ -1,5 +1,3 @@
-// src/main/java/com/finance/backend/modules/debts/statemententry/service/StatementEntryService.java
-
 package com.finance.backend.modules.debts.statemententry.service;
 
 import com.finance.backend.exception.BadRequestException;
@@ -162,6 +160,11 @@ public class StatementEntryService {
                                 statement,
                                 concept);
 
+                entry.setMerchant(
+                                resolveMerchant(
+                                                request.merchant(),
+                                                statement));
+
                 calculateMsiValues(
                                 entry);
 
@@ -202,6 +205,11 @@ public class StatementEntryService {
                                 request,
                                 statement,
                                 concept);
+
+                entry.setMerchant(
+                                resolveMerchant(
+                                                request.merchant(),
+                                                statement));
 
                 calculateMsiValues(
                                 entry);
@@ -258,6 +266,27 @@ public class StatementEntryService {
 
                 statementEntryRepository.delete(
                                 entry);
+        }
+
+        // ===================
+        // RESOLVE MERCHANT
+        // ===================
+
+        private String resolveMerchant(
+                        String requestedMerchant,
+                        Statement statement) {
+
+                if (requestedMerchant != null && !requestedMerchant.isBlank()) {
+                        return requestedMerchant.trim();
+                }
+
+                String defaultMerchant = statement.getUserCard()
+                                .getCard()
+                                .getDefaultMerchant();
+
+                return defaultMerchant == null || defaultMerchant.isBlank()
+                                ? null
+                                : defaultMerchant;
         }
 
         // ===================

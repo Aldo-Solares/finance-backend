@@ -1,5 +1,3 @@
-// src/main/java/com/finance/backend/modules/dashboard/debts/specification/StatementEntrySpecification.java
-
 package com.finance.backend.modules.dashboard.debts.specification;
 
 import com.finance.backend.modules.debts.statement.model.StatementStatus;

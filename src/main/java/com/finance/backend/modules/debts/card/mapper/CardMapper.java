@@ -21,6 +21,9 @@ public final class CardMapper {
                 card.setCardName(
                                 request.cardName().trim());
 
+                card.setDefaultMerchant(
+                                normalizeOptional(request.defaultMerchant()));
+
                 return card;
         }
 
@@ -34,6 +37,9 @@ public final class CardMapper {
                 card.setCardName(
                                 request.cardName().trim());
 
+                card.setDefaultMerchant(
+                                normalizeOptional(request.defaultMerchant()));
+
         }
 
         public static CardResponse toResponse(
@@ -42,6 +48,15 @@ public final class CardMapper {
                 return new CardResponse(
                                 card.getCardId(),
                                 card.getBank(),
-                                card.getCardName());
+                                card.getCardName(),
+                                card.getDefaultMerchant());
+        }
+
+        private static String normalizeOptional(String value) {
+                if (value == null || value.isBlank()) {
+                        return null;
+                }
+
+                return value.trim();
         }
 }

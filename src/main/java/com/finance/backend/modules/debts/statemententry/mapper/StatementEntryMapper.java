@@ -1,3 +1,5 @@
+// StatementEntryMapper.java
+
 package com.finance.backend.modules.debts.statemententry.mapper;
 
 import com.finance.backend.modules.debts.concept.model.Concept;
@@ -23,6 +25,7 @@ public final class StatementEntryMapper {
         entry.setConcept(concept);
         entry.setDebtor(request.debtor());
         entry.setSpecification(request.specification());
+        entry.setMerchant(request.merchant());
         entry.setNotes(request.notes());
         entry.setEntryType(request.entryType());
         entry.setDate(request.date());
@@ -30,6 +33,7 @@ public final class StatementEntryMapper {
         entry.setPaid(request.paid());
         entry.setMsiCurrent(request.msiCurrent());
         entry.setMsiTotal(request.msiTotal());
+
         return entry;
     }
 
@@ -43,6 +47,7 @@ public final class StatementEntryMapper {
         entry.setConcept(concept);
         entry.setDebtor(request.debtor());
         entry.setSpecification(request.specification());
+        entry.setMerchant(request.merchant());
         entry.setNotes(request.notes());
         entry.setEntryType(request.entryType());
         entry.setDate(request.date());
@@ -62,6 +67,7 @@ public final class StatementEntryMapper {
                 entry.getConcept().getName(),
                 entry.getDebtor(),
                 entry.getSpecification(),
+                entry.getMerchant(),
                 entry.getNotes(),
                 entry.getEntryType(),
                 entry.getDate(),

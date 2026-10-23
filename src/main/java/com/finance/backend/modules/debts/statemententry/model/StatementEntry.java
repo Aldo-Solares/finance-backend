@@ -30,6 +30,9 @@ public class StatementEntry {
     @Column(name = "specification")
     private String specification;
 
+    @Column(name = "merchant")
+    private String merchant;
+
     private String notes;
 
     @Enumerated(EnumType.STRING)
@@ -98,6 +101,14 @@ public class StatementEntry {
 
     public void setSpecification(String specification) {
         this.specification = specification;
+    }
+
+    public String getMerchant() {
+        return merchant;
+    }
+
+    public void setMerchant(String merchant) {
+        this.merchant = merchant;
     }
 
     public String getNotes() {

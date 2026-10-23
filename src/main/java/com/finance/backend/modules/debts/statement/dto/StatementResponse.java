@@ -10,6 +10,7 @@ public record StatementResponse(
         Long cardId,
         String bank,
         String cardName,
+        String defaultMerchant,
         Integer year,
         Integer month,
         LocalDate periodStart,

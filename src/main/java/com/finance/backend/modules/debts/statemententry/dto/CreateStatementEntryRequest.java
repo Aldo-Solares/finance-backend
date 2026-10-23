@@ -1,3 +1,5 @@
+// CreateStatementEntryRequest.java
+
 package com.finance.backend.modules.debts.statemententry.dto;
 
 import com.finance.backend.modules.debts.statemententry.model.StatementEntryType;
@@ -9,15 +11,16 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record CreateStatementEntryRequest(
-                @NotNull Long statementId,
-                @NotNull Long conceptId,
-                @NotBlank String debtor,
-                String specification,
-                String notes,
-                @NotNull StatementEntryType entryType,
-                LocalDate date,
-                @NotNull @Positive BigDecimal amount,
-                @NotNull Boolean paid,
-                Integer msiCurrent,
-                Integer msiTotal) {
+        @NotNull Long statementId,
+        @NotNull Long conceptId,
+        @NotBlank String debtor,
+        String specification,
+        String merchant,
+        String notes,
+        @NotNull StatementEntryType entryType,
+        LocalDate date,
+        @NotNull @Positive BigDecimal amount,
+        @NotNull Boolean paid,
+        Integer msiCurrent,
+        Integer msiTotal) {
 }
