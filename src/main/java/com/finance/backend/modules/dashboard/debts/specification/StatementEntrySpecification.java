@@ -74,20 +74,20 @@ public final class StatementEntrySpecification {
         };
     }
 
-    public static Specification<StatementEntry> hasConceptId(
-            Long conceptId) {
+    public static Specification<StatementEntry> hasCategoryId(
+            Long categoryId) {
 
         return (root, query, criteriaBuilder) -> {
 
-            if (conceptId == null) {
+            if (categoryId == null) {
                 return criteriaBuilder.conjunction();
             }
 
             return criteriaBuilder.equal(
                     root
-                            .get("concept")
-                            .get("conceptId"),
-                    conceptId);
+                            .get("category")
+                            .get("categoryId"),
+                    categoryId);
         };
     }
 

@@ -21,13 +21,13 @@ public class StatementEntry {
     private Statement statement;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "concept_id", nullable = false)
-    private Concept concept;
+    @JoinColumn(name = "category_id", nullable = false)
+    private Concept category;
 
     @Column(name = "debtor", nullable = false)
     private String debtor;
 
-    @Column(name = "specification")
+    @Column(name = "description")
     private String description;
 
     @Column(name = "merchant")
@@ -48,20 +48,20 @@ public class StatementEntry {
     @Column(name = "paid", nullable = false)
     private Boolean paid;
 
-    @Column(name = "msi_current")
-    private Integer msiCurrent;
+    @Column(name = "installment_number")
+    private Integer installmentNumber;
 
-    @Column(name = "msi_total")
-    private Integer msiTotal;
+    @Column(name = "total_installments")
+    private Integer totalInstallments;
 
     @Column(name = "purchase_amount", precision = 14, scale = 2)
     private BigDecimal purchaseAmount;
 
-    @Column(name = "remaining_msi")
-    private Integer remainingMsi;
+    @Column(name = "remaining_installments")
+    private Integer remainingInstallments;
 
-    @Column(name = "remaining_msi_amount", precision = 14, scale = 2)
-    private BigDecimal remainingMsiAmount;
+    @Column(name = "remaining_installments_amount", precision = 14, scale = 2)
+    private BigDecimal remainingInstallmentsAmount;
 
     public Long getEntryId() {
         return entryId;
@@ -79,12 +79,12 @@ public class StatementEntry {
         this.statement = statement;
     }
 
-    public Concept getConcept() {
-        return concept;
+    public Concept getCategory() {
+        return category;
     }
 
-    public void setConcept(Concept concept) {
-        this.concept = concept;
+    public void setCategory(Concept category) {
+        this.category = category;
     }
 
     public String getDebtor() {
@@ -151,20 +151,20 @@ public class StatementEntry {
         this.paid = paid;
     }
 
-    public Integer getMsiCurrent() {
-        return msiCurrent;
+    public Integer getInstallmentNumber() {
+        return installmentNumber;
     }
 
-    public void setMsiCurrent(Integer msiCurrent) {
-        this.msiCurrent = msiCurrent;
+    public void setInstallmentNumber(Integer installmentNumber) {
+        this.installmentNumber = installmentNumber;
     }
 
-    public Integer getMsiTotal() {
-        return msiTotal;
+    public Integer getTotalInstallments() {
+        return totalInstallments;
     }
 
-    public void setMsiTotal(Integer msiTotal) {
-        this.msiTotal = msiTotal;
+    public void setTotalInstallments(Integer totalInstallments) {
+        this.totalInstallments = totalInstallments;
     }
 
     public BigDecimal getPurchaseAmount() {
@@ -175,19 +175,19 @@ public class StatementEntry {
         this.purchaseAmount = purchaseAmount;
     }
 
-    public Integer getRemainingMsi() {
-        return remainingMsi;
+    public Integer getRemainingInstallments() {
+        return remainingInstallments;
     }
 
-    public void setRemainingMsi(Integer remainingMsi) {
-        this.remainingMsi = remainingMsi;
+    public void setRemainingInstallments(Integer remainingInstallments) {
+        this.remainingInstallments = remainingInstallments;
     }
 
-    public BigDecimal getRemainingMsiAmount() {
-        return remainingMsiAmount;
+    public BigDecimal getRemainingInstallmentsAmount() {
+        return remainingInstallmentsAmount;
     }
 
-    public void setRemainingMsiAmount(BigDecimal remainingMsiAmount) {
-        this.remainingMsiAmount = remainingMsiAmount;
+    public void setRemainingInstallmentsAmount(BigDecimal remainingInstallmentsAmount) {
+        this.remainingInstallmentsAmount = remainingInstallmentsAmount;
     }
 }

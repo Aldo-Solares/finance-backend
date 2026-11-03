@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/concepts")
+@RequestMapping("/api/categories")
 public class ConceptController {
 
         private final ConceptService conceptService;
@@ -30,11 +30,11 @@ public class ConceptController {
                                 conceptService.findAll());
         }
 
-        @GetMapping("/{conceptId}")
+        @GetMapping("/{categoryId}")
         public ApiResponse<ConceptResponse> findById(
-                        @PathVariable Long conceptId) {
+                        @PathVariable Long categoryId) {
                 return ApiResponse.success(
-                                conceptService.findById(conceptId));
+                                conceptService.findById(categoryId));
         }
 
         @PostMapping
@@ -52,25 +52,25 @@ public class ConceptController {
                                                                 concept));
         }
 
-        @PutMapping("/{conceptId}")
+        @PutMapping("/{categoryId}")
         @PreAuthorize("hasRole('ADMIN')")
         public ApiResponse<ConceptResponse> update(
-                        @PathVariable Long conceptId,
+                        @PathVariable Long categoryId,
                         @Valid @RequestBody UpdateConceptRequest request) {
 
                 return ApiResponse.success(
                                 "Categoría actualizada",
                                 conceptService.update(
-                                                conceptId,
+                                                categoryId,
                                                 request));
         }
 
-        @DeleteMapping("/{conceptId}")
+        @DeleteMapping("/{categoryId}")
         @PreAuthorize("hasRole('ADMIN')")
         public ApiResponse<Void> delete(
-                        @PathVariable Long conceptId) {
+                        @PathVariable Long categoryId) {
 
-                conceptService.delete(conceptId);
+                conceptService.delete(categoryId);
 
                 return ApiResponse.success(
                                 "Categoría eliminada",

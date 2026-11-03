@@ -152,15 +152,15 @@ public class StatementEntryService {
                                 request.statementId(),
                                 email);
 
-                Concept concept = getConcept(
-                                request.conceptId());
+                Concept concept = getCategory(
+                                request.categoryId());
                 String merchant = resolveMerchant(request.merchant(), statement);
                 StatementEntryType entryType = resolveEntryType(concept, merchant);
 
                 validateEntryType(
                                 entryType,
-                                request.msiCurrent(),
-                                request.msiTotal());
+                                request.installmentNumber(),
+                                request.totalInstallments());
 
                 StatementEntry entry = StatementEntryMapper.toEntity(
                                 request,
@@ -197,15 +197,15 @@ public class StatementEntryService {
                                 request.statementId(),
                                 email);
 
-                Concept concept = getConcept(
-                                request.conceptId());
+                Concept concept = getCategory(
+                                request.categoryId());
                 String merchant = resolveMerchant(request.merchant(), statement);
                 StatementEntryType entryType = resolveEntryType(concept, merchant);
 
                 validateEntryType(
                                 entryType,
-                                request.msiCurrent(),
-                                request.msiTotal());
+                                request.installmentNumber(),
+                                request.totalInstallments());
 
                 StatementEntryMapper.updateEntity(
                                 entry,
@@ -330,15 +330,15 @@ public class StatementEntryService {
 
         private void validateEntryType(
                         StatementEntryType entryType,
-                        Integer msiCurrent,
-                        Integer msiTotal) {
+                        Integer installmentNumber,
+                        Integer totalInstallments) {
 
                 if (entryType != StatementEntryType.RECURRING) {
                         return;
                 }
 
-                if (msiCurrent != null
-                                || msiTotal != null) {
+                if (installmentNumber != null
+                                || totalInstallments != null) {
 
                         throw new IllegalArgumentException(
                                         "Los movimientos recurrentes no pueden tener información MSI");
@@ -353,22 +353,22 @@ public class StatementEntryService {
                         StatementEntry entry) {
 
                 if (entry.getEntryType() != StatementEntryType.PURCHASE
-                                || entry.getMsiCurrent() == null
-                                || entry.getMsiTotal() == null) {
+                                || entry.getInstallmentNumber() == null
+                                || entry.getTotalInstallments() == null) {
 
                         entry.setPurchaseAmount(null);
-                        entry.setRemainingMsi(null);
-                        entry.setRemainingMsiAmount(null);
+                        entry.setRemainingInstallments(null);
+                        entry.setRemainingInstallmentsAmount(null);
 
                         return;
                 }
 
-                int msiCurrent = entry.getMsiCurrent();
-                int msiTotal = entry.getMsiTotal();
+                int installmentNumber = entry.getInstallmentNumber();
+                int totalInstallments = entry.getTotalInstallments();
 
-                if (msiCurrent < 1
-                                || msiTotal < 1
-                                || msiCurrent > msiTotal) {
+                if (installmentNumber < 1
+                                || totalInstallments < 1
+                                || installmentNumber > totalInstallments) {
 
                         throw new IllegalArgumentException(
                                         "La mensualidad MSI debe estar entre 1 y el total de meses");
@@ -376,16 +376,16 @@ public class StatementEntryService {
 
                 BigDecimal purchaseAmount = entry.getAmount()
                                 .multiply(
-                                                BigDecimal.valueOf(msiTotal))
+                                                BigDecimal.valueOf(totalInstallments))
                                 .setScale(
                                                 2,
                                                 RoundingMode.HALF_UP);
 
-                int remainingMsi = msiTotal - msiCurrent + 1;
+                int remainingInstallments = totalInstallments - installmentNumber + 1;
 
-                BigDecimal remainingMsiAmount = entry.getAmount()
+                BigDecimal remainingInstallmentsAmount = entry.getAmount()
                                 .multiply(
-                                                BigDecimal.valueOf(remainingMsi))
+                                                BigDecimal.valueOf(remainingInstallments))
                                 .setScale(
                                                 2,
                                                 RoundingMode.HALF_UP);
@@ -393,11 +393,11 @@ public class StatementEntryService {
                 entry.setPurchaseAmount(
                                 purchaseAmount);
 
-                entry.setRemainingMsi(
-                                remainingMsi);
+                entry.setRemainingInstallments(
+                                remainingInstallments);
 
-                entry.setRemainingMsiAmount(
-                                remainingMsiAmount);
+                entry.setRemainingInstallmentsAmount(
+                                remainingInstallmentsAmount);
         }
 
         // ===================
@@ -438,12 +438,12 @@ public class StatementEntryService {
         // CONCEPT
         // ===================
 
-        private Concept getConcept(
-                        Long conceptId) {
+        private Concept getCategory(
+                        Long categoryId) {
 
                 return conceptRepository
                                 .findById(
-                                                conceptId)
+                                                categoryId)
                                 .orElseThrow(
                                                 () -> new ResourceNotFoundException(
                                                                 "Categoría no encontrada"));

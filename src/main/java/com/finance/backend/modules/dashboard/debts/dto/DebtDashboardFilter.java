@@ -10,7 +10,7 @@ public record DebtDashboardFilter(
 
         Long userCardId,
 
-        Long conceptId,
+        Long categoryId,
 
         Boolean paid,
 

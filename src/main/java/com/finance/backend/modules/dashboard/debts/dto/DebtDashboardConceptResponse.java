@@ -4,9 +4,9 @@ import java.math.BigDecimal;
 
 public record DebtDashboardConceptResponse(
 
-        Long conceptId,
+        Long categoryId,
 
-        String conceptName,
+        String categoryName,
 
         BigDecimal totalExpenses,
 

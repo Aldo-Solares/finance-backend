@@ -3,13 +3,13 @@ package com.finance.backend.modules.debts.concept.model;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "concepts")
+@Table(name = "categories")
 public class Concept {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "concept_id")
-    private Long conceptId;
+    @Column(name = "category_id")
+    private Long categoryId;
 
     @Column(nullable = false, unique = true, length = 100)
     private String name;
@@ -17,12 +17,12 @@ public class Concept {
     public Concept() {
     }
 
-    public Long getConceptId() {
-        return conceptId;
+    public Long getCategoryId() {
+        return categoryId;
     }
 
-    public void setConceptId(Long conceptId) {
-        this.conceptId = conceptId;
+    public void setCategoryId(Long categoryId) {
+        this.categoryId = categoryId;
     }
 
     public String getName() {

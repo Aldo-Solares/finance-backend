@@ -21,7 +21,7 @@ public record DebtDashboardResponse(
 
         List<DebtDashboardCardResponse> cards,
 
-        List<DebtDashboardConceptResponse> concepts,
+        List<DebtDashboardConceptResponse> categories,
 
         List<DebtDashboardStatementResponse> statements
 

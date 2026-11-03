@@ -85,7 +85,7 @@ public class StatementExcelWorkbookGenerator {
                                         StatementEntryResponse::date,
                                         Comparator.nullsFirst(Comparator.naturalOrder()))
                                 .thenComparing(
-                                        e -> safe(e.conceptName()),
+                                        e -> safe(e.categoryName()),
                                         String.CASE_INSENSITIVE_ORDER)
                                 .thenComparing(
                                         e -> safe(e.debtor()),
@@ -192,7 +192,7 @@ public class StatementExcelWorkbookGenerator {
                         FIRST_DETAIL_COLUMN, LAST_DETAIL_COLUMN);
             }
 
-            writeText(row, 1, entry.conceptName());
+            writeText(row, 1, entry.categoryName());
             writeText(row, 2, entry.description());
             writeText(row, 3, entry.merchant());
             writeText(row, 4, entry.debtor());
@@ -215,8 +215,8 @@ public class StatementExcelWorkbookGenerator {
             BigDecimal amount = amountOrZero(entry.amount());
             writeMoney(row, 8, amount);
             writeText(row, 10, entryTypeLabel(entry.entryType()));
-            writeInteger(row, 11, entry.remainingMsi());
-            writeOptionalMoney(row, 12, entry.remainingMsiAmount());
+            writeInteger(row, 11, entry.remainingInstallments());
+            writeOptionalMoney(row, 12, entry.remainingInstallmentsAmount());
             writeText(row, 13, entry.notes());
             monthTotal = monthTotal.add(amount);
             rowIndex++;
@@ -456,10 +456,10 @@ public class StatementExcelWorkbookGenerator {
     }
 
     private static String msiLabel(StatementEntryResponse entry) {
-        if (entry.msiCurrent() == null || entry.msiTotal() == null) {
+        if (entry.installmentNumber() == null || entry.totalInstallments() == null) {
             return "No";
         }
-        return entry.msiCurrent() + " de " + entry.msiTotal();
+        return entry.installmentNumber() + " de " + entry.totalInstallments();
     }
 
     private static String paidLabel(Boolean paid) {

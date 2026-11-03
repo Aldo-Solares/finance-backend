@@ -10,8 +10,8 @@ import java.time.LocalDate;
 public record StatementEntryResponse(
                 Long entryId,
                 Long statementId,
-                Long conceptId,
-                String conceptName,
+                Long categoryId,
+                String categoryName,
                 String debtor,
                 String description,
                 String merchant,
@@ -20,9 +20,9 @@ public record StatementEntryResponse(
                 LocalDate date,
                 BigDecimal amount,
                 Boolean paid,
-                Integer msiCurrent,
-                Integer msiTotal,
+                Integer installmentNumber,
+                Integer totalInstallments,
                 BigDecimal purchaseAmount,
-                Integer remainingMsi,
-                BigDecimal remainingMsiAmount) {
+                Integer remainingInstallments,
+                BigDecimal remainingInstallmentsAmount) {
 }

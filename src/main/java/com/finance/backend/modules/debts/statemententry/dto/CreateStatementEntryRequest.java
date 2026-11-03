@@ -12,7 +12,7 @@ import java.time.LocalDate;
 
 public record CreateStatementEntryRequest(
         @NotNull Long statementId,
-        @NotNull Long conceptId,
+        @NotNull Long categoryId,
         @NotBlank String debtor,
         String description,
         String merchant,
@@ -21,6 +21,6 @@ public record CreateStatementEntryRequest(
         LocalDate date,
         @NotNull @Positive BigDecimal amount,
         @NotNull Boolean paid,
-        Integer msiCurrent,
-        Integer msiTotal) {
+        Integer installmentNumber,
+        Integer totalInstallments) {
 }

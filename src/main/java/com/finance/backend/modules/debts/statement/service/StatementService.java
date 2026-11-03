@@ -355,25 +355,25 @@ public class StatementService {
                                 continue;
                         }
 
-                        int nextMsiCurrent = previousEntry.getMsiCurrent() + 1;
+                        int nextInstallmentNumber = previousEntry.getInstallmentNumber() + 1;
 
-                        int remainingMsi = previousEntry.getMsiTotal()
-                                        - nextMsiCurrent
+                        int remainingInstallments = previousEntry.getTotalInstallments()
+                                        - nextInstallmentNumber
                                         + 1;
 
-                        BigDecimal remainingMsiAmount = previousEntry
+                        BigDecimal remainingInstallmentsAmount = previousEntry
                                         .getAmount()
                                         .multiply(
                                                         BigDecimal.valueOf(
-                                                                        remainingMsi));
+                                                                        remainingInstallments));
 
                         StatementEntry newEntry = new StatementEntry();
 
                         newEntry.setStatement(
                                         newStatement);
 
-                        newEntry.setConcept(
-                                        previousEntry.getConcept());
+                        newEntry.setCategory(
+                                        previousEntry.getCategory());
 
                         newEntry.setDebtor(
                                         previousEntry.getDebtor());
@@ -399,20 +399,20 @@ public class StatementService {
                         newEntry.setPaid(
                                         false);
 
-                        newEntry.setMsiCurrent(
-                                        nextMsiCurrent);
+                        newEntry.setInstallmentNumber(
+                                        nextInstallmentNumber);
 
-                        newEntry.setMsiTotal(
-                                        previousEntry.getMsiTotal());
+                        newEntry.setTotalInstallments(
+                                        previousEntry.getTotalInstallments());
 
                         newEntry.setPurchaseAmount(
                                         previousEntry.getPurchaseAmount());
 
-                        newEntry.setRemainingMsi(
-                                        remainingMsi);
+                        newEntry.setRemainingInstallments(
+                                        remainingInstallments);
 
-                        newEntry.setRemainingMsiAmount(
-                                        remainingMsiAmount);
+                        newEntry.setRemainingInstallmentsAmount(
+                                        remainingInstallmentsAmount);
 
                         statementEntryRepository.save(
                                         newEntry);
@@ -425,7 +425,7 @@ public class StatementService {
 
                 StatementEntry newEntry = new StatementEntry();
                 newEntry.setStatement(newStatement);
-                newEntry.setConcept(previousEntry.getConcept());
+                newEntry.setCategory(previousEntry.getCategory());
                 newEntry.setDebtor(previousEntry.getDebtor());
                 newEntry.setDescription(previousEntry.getDescription());
                 newEntry.setMerchant(previousEntry.getMerchant());
@@ -434,11 +434,11 @@ public class StatementService {
                 newEntry.setDate(previousEntry.getDate());
                 newEntry.setAmount(previousEntry.getAmount());
                 newEntry.setPaid(false);
-                newEntry.setMsiCurrent(previousEntry.getMsiCurrent());
-                newEntry.setMsiTotal(previousEntry.getMsiTotal());
+                newEntry.setInstallmentNumber(previousEntry.getInstallmentNumber());
+                newEntry.setTotalInstallments(previousEntry.getTotalInstallments());
                 newEntry.setPurchaseAmount(previousEntry.getPurchaseAmount());
-                newEntry.setRemainingMsi(previousEntry.getRemainingMsi());
-                newEntry.setRemainingMsiAmount(previousEntry.getRemainingMsiAmount());
+                newEntry.setRemainingInstallments(previousEntry.getRemainingInstallments());
+                newEntry.setRemainingInstallmentsAmount(previousEntry.getRemainingInstallmentsAmount());
 
                 statementEntryRepository.save(newEntry);
         }
@@ -447,9 +447,9 @@ public class StatementService {
                         StatementEntry entry) {
 
                 return entry.getEntryType() == StatementEntryType.PURCHASE
-                                && entry.getMsiCurrent() != null
-                                && entry.getMsiTotal() != null
-                                && entry.getMsiCurrent() < entry.getMsiTotal();
+                                && entry.getInstallmentNumber() != null
+                                && entry.getTotalInstallments() != null
+                                && entry.getInstallmentNumber() < entry.getTotalInstallments();
         }
 
         // ===================

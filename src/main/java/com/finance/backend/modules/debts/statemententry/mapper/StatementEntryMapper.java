@@ -22,7 +22,7 @@ public final class StatementEntryMapper {
         StatementEntry entry = new StatementEntry();
 
         entry.setStatement(statement);
-        entry.setConcept(concept);
+        entry.setCategory(concept);
         entry.setDebtor(request.debtor());
         entry.setDescription(request.description());
         entry.setMerchant(request.merchant());
@@ -31,8 +31,8 @@ public final class StatementEntryMapper {
         entry.setDate(request.date());
         entry.setAmount(request.amount());
         entry.setPaid(request.paid());
-        entry.setMsiCurrent(request.msiCurrent());
-        entry.setMsiTotal(request.msiTotal());
+        entry.setInstallmentNumber(request.installmentNumber());
+        entry.setTotalInstallments(request.totalInstallments());
 
         return entry;
     }
@@ -44,7 +44,7 @@ public final class StatementEntryMapper {
             Concept concept) {
 
         entry.setStatement(statement);
-        entry.setConcept(concept);
+        entry.setCategory(concept);
         entry.setDebtor(request.debtor());
         entry.setDescription(request.description());
         entry.setMerchant(request.merchant());
@@ -53,8 +53,8 @@ public final class StatementEntryMapper {
         entry.setDate(request.date());
         entry.setAmount(request.amount());
         entry.setPaid(request.paid());
-        entry.setMsiCurrent(request.msiCurrent());
-        entry.setMsiTotal(request.msiTotal());
+        entry.setInstallmentNumber(request.installmentNumber());
+        entry.setTotalInstallments(request.totalInstallments());
     }
 
     public static StatementEntryResponse toResponse(
@@ -63,8 +63,8 @@ public final class StatementEntryMapper {
         return new StatementEntryResponse(
                 entry.getEntryId(),
                 entry.getStatement().getStatementId(),
-                entry.getConcept().getConceptId(),
-                entry.getConcept().getName(),
+                entry.getCategory().getCategoryId(),
+                entry.getCategory().getName(),
                 entry.getDebtor(),
                 entry.getDescription(),
                 entry.getMerchant(),
@@ -73,10 +73,10 @@ public final class StatementEntryMapper {
                 entry.getDate(),
                 entry.getAmount(),
                 entry.getPaid(),
-                entry.getMsiCurrent(),
-                entry.getMsiTotal(),
+                entry.getInstallmentNumber(),
+                entry.getTotalInstallments(),
                 entry.getPurchaseAmount(),
-                entry.getRemainingMsi(),
-                entry.getRemainingMsiAmount());
+                entry.getRemainingInstallments(),
+                entry.getRemainingInstallmentsAmount());
     }
 }

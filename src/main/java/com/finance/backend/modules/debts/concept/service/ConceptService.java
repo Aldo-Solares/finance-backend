@@ -95,7 +95,7 @@ public class ConceptService {
                                 conceptId);
 
                 boolean used = statementEntryRepository
-                                .existsByConceptConceptId(
+                                .existsByCategoryCategoryId(
                                                 conceptId);
 
                 if (used) {

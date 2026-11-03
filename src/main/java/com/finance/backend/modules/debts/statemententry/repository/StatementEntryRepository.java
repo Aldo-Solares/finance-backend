@@ -17,8 +17,8 @@ public interface StatementEntryRepository
         boolean existsByStatementStatementId(
                         Long statementId);
 
-        boolean existsByConceptConceptId(
-                        Long conceptId);
+        boolean existsByCategoryCategoryId(
+                        Long categoryId);
 
         List<StatementEntry> findByStatementStatementIdAndDebtor(
                         Long statementId,

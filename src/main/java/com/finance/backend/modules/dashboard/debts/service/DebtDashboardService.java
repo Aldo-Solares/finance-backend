@@ -75,7 +75,7 @@ public class DebtDashboardService {
                                 entries,
                                 totalExpenses);
 
-                List<DebtDashboardConceptResponse> concepts = buildConcepts(
+                List<DebtDashboardConceptResponse> categories = buildCategories(
                                 entries,
                                 totalExpenses);
 
@@ -91,7 +91,7 @@ public class DebtDashboardService {
                                 totalEntries,
                                 money(averageExpense),
                                 cards,
-                                concepts,
+                                categories,
                                 statements);
         }
 
@@ -118,8 +118,8 @@ public class DebtDashboardService {
                                                                                 filter.userCardId()))
                                 .and(
                                                 StatementEntrySpecification
-                                                                .hasConceptId(
-                                                                                filter.conceptId()))
+                                                                .hasCategoryId(
+                                                                                filter.categoryId()))
                                 .and(
                                                 StatementEntrySpecification
                                                                 .hasPaid(
@@ -154,7 +154,7 @@ public class DebtDashboardService {
                                 year,
                                 month,
                                 filter.userCardId(),
-                                filter.conceptId(),
+                                filter.categoryId(),
                                 filter.paid(),
                                 filter.status(),
                                 filter.debtor());
@@ -271,21 +271,21 @@ public class DebtDashboardService {
                                 .toList();
         }
 
-        private List<DebtDashboardConceptResponse> buildConcepts(
+        private List<DebtDashboardConceptResponse> buildCategories(
                         List<StatementEntry> entries,
                         BigDecimal totalExpenses) {
 
-                Map<Long, ConceptAccumulator> grouped = new LinkedHashMap<>();
+                Map<Long, CategoryAccumulator> grouped = new LinkedHashMap<>();
 
                 for (StatementEntry entry : entries) {
 
-                        Concept concept = entry.getConcept();
+                        Concept category = entry.getCategory();
 
-                        ConceptAccumulator accumulator = grouped.computeIfAbsent(
-                                        concept.getConceptId(),
-                                        ignored -> new ConceptAccumulator(
-                                                        concept.getConceptId(),
-                                                        concept.getName()));
+                        CategoryAccumulator accumulator = grouped.computeIfAbsent(
+                                        category.getCategoryId(),
+                                        ignored -> new CategoryAccumulator(
+                                                        category.getCategoryId(),
+                                                        category.getName()));
 
                         accumulator.totalExpenses = accumulator.totalExpenses.add(
                                         entry.getAmount());
@@ -298,8 +298,8 @@ public class DebtDashboardService {
                                 .stream()
                                 .map(
                                                 accumulator -> new DebtDashboardConceptResponse(
-                                                                accumulator.conceptId,
-                                                                accumulator.conceptName,
+                                                                accumulator.categoryId,
+                                                                accumulator.categoryName,
                                                                 money(
                                                                                 accumulator.totalExpenses),
                                                                 accumulator.totalEntries,
@@ -448,22 +448,22 @@ public class DebtDashboardService {
                 }
         }
 
-        private static final class ConceptAccumulator {
+        private static final class CategoryAccumulator {
 
-                private final Long conceptId;
+                private final Long categoryId;
 
-                private final String conceptName;
+                private final String categoryName;
 
                 private BigDecimal totalExpenses = ZERO;
 
                 private long totalEntries;
 
-                private ConceptAccumulator(
-                                Long conceptId,
-                                String conceptName) {
+                private CategoryAccumulator(
+                                Long categoryId,
+                                String categoryName) {
 
-                        this.conceptId = conceptId;
-                        this.conceptName = conceptName;
+                        this.categoryId = categoryId;
+                        this.categoryName = categoryName;
                 }
         }
 

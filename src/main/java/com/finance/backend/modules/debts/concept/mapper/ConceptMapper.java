@@ -30,7 +30,7 @@ public final class ConceptMapper {
         public static ConceptResponse toResponse(
                         Concept concept) {
                 return new ConceptResponse(
-                                concept.getConceptId(),
+                                concept.getCategoryId(),
                                 concept.getName());
         }
 }
