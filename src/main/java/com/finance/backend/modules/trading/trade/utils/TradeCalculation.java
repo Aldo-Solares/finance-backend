@@ -15,6 +15,8 @@ public final class TradeCalculation {
 
         private static final int SCALE = 8;
 
+        private static final int CURRENCY_SCALE = 2;
+
         private TradeCalculation() {
         }
 
@@ -34,7 +36,13 @@ public final class TradeCalculation {
         public static boolean isCommissionValid(
                         BigDecimal actual,
                         BigDecimal expected) {
-                return actual.compareTo(expected) == 0;
+                return actual.setScale(
+                                CURRENCY_SCALE,
+                                RoundingMode.HALF_UP)
+                                .compareTo(
+                                                expected.setScale(
+                                                                CURRENCY_SCALE,
+                                                                RoundingMode.HALF_UP)) == 0;
         }
 
         public static BigDecimal getPurchaseGrossAmount(

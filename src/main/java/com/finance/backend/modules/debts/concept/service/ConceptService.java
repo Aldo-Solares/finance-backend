@@ -100,7 +100,7 @@ public class ConceptService {
 
                 if (used) {
                         throw new ConflictException(
-                                        "El concepto está siendo utilizado por uno o más movimientos");
+                                        "La categoría está siendo utilizada por uno o más movimientos");
                 }
 
                 conceptRepository.delete(
@@ -118,6 +118,6 @@ public class ConceptService {
                                 .findById(conceptId)
                                 .orElseThrow(
                                                 () -> new ResourceNotFoundException(
-                                                                "Concepto no encontrado"));
+                                                                "Categoría no encontrada"));
         }
 }

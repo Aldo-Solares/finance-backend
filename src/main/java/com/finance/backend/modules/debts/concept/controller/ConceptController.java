@@ -48,7 +48,7 @@ public class ConceptController {
                                 .status(HttpStatus.CREATED)
                                 .body(
                                                 ApiResponse.success(
-                                                                "Concepto creado",
+                                                                "Categoría creada",
                                                                 concept));
         }
 
@@ -59,7 +59,7 @@ public class ConceptController {
                         @Valid @RequestBody UpdateConceptRequest request) {
 
                 return ApiResponse.success(
-                                "Concepto actualizado",
+                                "Categoría actualizada",
                                 conceptService.update(
                                                 conceptId,
                                                 request));
@@ -73,7 +73,7 @@ public class ConceptController {
                 conceptService.delete(conceptId);
 
                 return ApiResponse.success(
-                                "Concepto eliminado",
+                                "Categoría eliminada",
                                 null);
         }
 

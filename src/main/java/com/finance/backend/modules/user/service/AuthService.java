@@ -172,15 +172,10 @@ public class AuthService {
 
                 User user = userRepository
                                 .findByEmailIgnoreCase(email)
-                                .orElseThrow(
-                                                () -> new ResourceNotFoundException(
-                                                                "Usuario no encontrado"));
+                                .orElse(null);
 
-                if (Boolean.TRUE.equals(
-                                user.getEmailVerified())) {
-
-                        throw new ConflictException(
-                                        "El correo ya está verificado");
+                if (user == null || Boolean.TRUE.equals(user.getEmailVerified())) {
+                        return;
                 }
 
                 String verificationToken = generateSecureToken();

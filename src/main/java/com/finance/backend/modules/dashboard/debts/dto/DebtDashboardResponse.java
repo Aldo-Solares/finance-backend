@@ -5,25 +5,25 @@ import java.util.List;
 
 public record DebtDashboardResponse(
 
-                Integer year,
+        Integer year,
 
-                Integer month,
+        Integer month,
 
-                BigDecimal totalExpenses,
+        BigDecimal totalExpenses,
 
-                BigDecimal totalPaid,
+        BigDecimal totalPaid,
 
-                BigDecimal totalPending,
+        BigDecimal totalPending,
 
-                long totalEntries,
+        long totalEntries,
 
-                BigDecimal averageExpense,
+        BigDecimal averageExpense,
 
-                List<DebtDashboardCardResponse> cards,
+        List<DebtDashboardCardResponse> cards,
 
-                List<DebtDashboardConceptResponse> concepts,
+        List<DebtDashboardConceptResponse> concepts,
 
-                List<DebtDashboardStatementResponse> statements
+        List<DebtDashboardStatementResponse> statements
 
 ) {
 }

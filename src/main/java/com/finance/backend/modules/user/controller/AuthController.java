@@ -55,7 +55,7 @@ public class AuthController {
                 authService.resendVerification(request);
 
                 return ApiResponse.success(
-                                "Correo de verificación enviado",
+                                "Si el correo existe y requiere verificación, se enviará un enlace.",
                                 null);
         }
 

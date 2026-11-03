@@ -24,7 +24,7 @@ public final class StatementEntryMapper {
         entry.setStatement(statement);
         entry.setConcept(concept);
         entry.setDebtor(request.debtor());
-        entry.setSpecification(request.specification());
+        entry.setDescription(request.description());
         entry.setMerchant(request.merchant());
         entry.setNotes(request.notes());
         entry.setEntryType(request.entryType());
@@ -46,7 +46,7 @@ public final class StatementEntryMapper {
         entry.setStatement(statement);
         entry.setConcept(concept);
         entry.setDebtor(request.debtor());
-        entry.setSpecification(request.specification());
+        entry.setDescription(request.description());
         entry.setMerchant(request.merchant());
         entry.setNotes(request.notes());
         entry.setEntryType(request.entryType());
@@ -66,7 +66,7 @@ public final class StatementEntryMapper {
                 entry.getConcept().getConceptId(),
                 entry.getConcept().getName(),
                 entry.getDebtor(),
-                entry.getSpecification(),
+                entry.getDescription(),
                 entry.getMerchant(),
                 entry.getNotes(),
                 entry.getEntryType(),

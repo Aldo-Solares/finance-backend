@@ -4,19 +4,19 @@ import com.finance.backend.modules.debts.statement.model.StatementStatus;
 
 public record DebtDashboardFilter(
 
-                Integer year,
+        Integer year,
 
-                Integer month,
+        Integer month,
 
-                Long userCardId,
+        Long userCardId,
 
-                Long conceptId,
+        Long conceptId,
 
-                Boolean paid,
+        Boolean paid,
 
-                StatementStatus status,
+        StatementStatus status,
 
-                String debtor
+        String debtor
 
 ) {
 }

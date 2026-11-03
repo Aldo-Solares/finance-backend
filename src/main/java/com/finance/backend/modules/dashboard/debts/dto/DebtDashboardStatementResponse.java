@@ -7,33 +7,33 @@ import java.time.LocalDate;
 
 public record DebtDashboardStatementResponse(
 
-        Long statementId,
+                Long statementId,
 
-        Long userCardId,
+                Long userCardId,
 
-        Long cardId,
+                Long cardId,
 
-        String bank,
+                String bank,
 
-        String cardName,
+                String cardName,
 
-        Integer year,
+                Integer year,
 
-        Integer month,
+                Integer month,
 
-        LocalDate paymentDate,
+                LocalDate paymentDate,
 
-        Boolean paid,
+                Boolean paid,
 
-        StatementStatus status,
+                StatementStatus status,
 
-        BigDecimal totalExpenses,
+                BigDecimal totalExpenses,
 
-        BigDecimal totalPaid,
+                BigDecimal totalPaid,
 
-        BigDecimal totalPending,
+                BigDecimal totalPending,
 
-        long totalEntries
+                long totalEntries
 
 ) {
 }

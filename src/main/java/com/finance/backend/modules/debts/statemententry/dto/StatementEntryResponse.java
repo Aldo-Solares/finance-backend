@@ -13,7 +13,7 @@ public record StatementEntryResponse(
                 Long conceptId,
                 String conceptName,
                 String debtor,
-                String specification,
+                String description,
                 String merchant,
                 String notes,
                 StatementEntryType entryType,

@@ -4,15 +4,15 @@ import java.math.BigDecimal;
 
 public record DebtDashboardConceptResponse(
 
-                Long conceptId,
+        Long conceptId,
 
-                String conceptName,
+        String conceptName,
 
-                BigDecimal totalExpenses,
+        BigDecimal totalExpenses,
 
-                long totalEntries,
+        long totalEntries,
 
-                BigDecimal percentage
+        BigDecimal percentage
 
 ) {
 }

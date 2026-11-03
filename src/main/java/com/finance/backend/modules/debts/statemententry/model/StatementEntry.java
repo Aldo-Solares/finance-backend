@@ -28,7 +28,7 @@ public class StatementEntry {
     private String debtor;
 
     @Column(name = "specification")
-    private String specification;
+    private String description;
 
     @Column(name = "merchant")
     private String merchant;
@@ -95,12 +95,12 @@ public class StatementEntry {
         this.debtor = debtor;
     }
 
-    public String getSpecification() {
-        return specification;
+    public String getDescription() {
+        return description;
     }
 
-    public void setSpecification(String specification) {
-        this.specification = specification;
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public String getMerchant() {

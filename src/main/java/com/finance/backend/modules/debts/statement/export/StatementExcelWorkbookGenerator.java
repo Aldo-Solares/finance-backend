@@ -44,12 +44,12 @@ public class StatementExcelWorkbookGenerator {
     private static final int FIRST_DETAIL_COLUMN = 1; // Columna B
     private static final int LAST_DETAIL_COLUMN = 13; // Columna N
     private static final List<String> DETAIL_HEADERS = List.of(
-            "Concepto", "Especificación", "Comercio", "Deudor", "Fecha", "MSI",
-            "Pagado", "Precio", "Total", "Tipo", "MSI restantes",
+            "Categoría", "Descripción del gasto", "Comercio", "Deudor", "Fecha", "MSI",
+            "Pagado", "Importe", "Total compra", "Tipo", "MSI restantes",
             "Saldo MSI restante", "Notas");
     // Reutiliza estilos existentes de texto, fecha y moneda al extender la tabla.
     private static final int[] DETAIL_STYLE_SOURCE_COLUMNS = {
-            1, 2, 2, 3, 4, 5, 6, 7, 8, 2, 5, 8, 2
+            1, 2, 2, 3, 4, 5, 6, 8, 7, 2, 5, 8, 2
     };
 
     public byte[] generate(
@@ -130,7 +130,7 @@ public class StatementExcelWorkbookGenerator {
         }
 
         // Resumen superior. Escribe valores calculados para reemplazar fórmulas rotas.
-        writeText(sheet, 1, 1, "Concepto");
+        writeText(sheet, 1, 1, "Categoría");
         writeText(sheet, 2, 1, "Total Gastado");
         writeText(sheet, 3, 1, "Monto Pagado");
         writeText(sheet, 4, 1, "Monto Restante");
@@ -193,7 +193,7 @@ public class StatementExcelWorkbookGenerator {
             }
 
             writeText(row, 1, entry.conceptName());
-            writeText(row, 2, entry.specification());
+            writeText(row, 2, entry.description());
             writeText(row, 3, entry.merchant());
             writeText(row, 4, entry.debtor());
 
@@ -207,13 +207,13 @@ public class StatementExcelWorkbookGenerator {
 
             writeText(row, 7, paidLabel(entry.paid()));
             if (entry.purchaseAmount() == null) {
-                writeText(row, 8, "-");
+                writeText(row, 9, "-");
             } else {
-                writeMoney(row, 8, entry.purchaseAmount());
+                writeMoney(row, 9, entry.purchaseAmount());
             }
 
             BigDecimal amount = amountOrZero(entry.amount());
-            writeMoney(row, 9, amount);
+            writeMoney(row, 8, amount);
             writeText(row, 10, entryTypeLabel(entry.entryType()));
             writeInteger(row, 11, entry.remainingMsi());
             writeOptionalMoney(row, 12, entry.remainingMsiAmount());
@@ -234,7 +234,7 @@ public class StatementExcelWorkbookGenerator {
         for (int col = 2; col <= LAST_DETAIL_COLUMN; col++) {
             writeText(totalRow, col, "");
         }
-        writeMoney(totalRow, 9, monthTotal);
+        writeMoney(totalRow, 8, monthTotal);
 
         // Actualiza solo la tabla de movimientos de esta hoja.
         resizeDetailTable(sheet, monthName, rowIndex);

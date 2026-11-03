@@ -14,7 +14,7 @@ public record CreateStatementEntryRequest(
         @NotNull Long statementId,
         @NotNull Long conceptId,
         @NotBlank String debtor,
-        String specification,
+        String description,
         String merchant,
         String notes,
         @NotNull StatementEntryType entryType,

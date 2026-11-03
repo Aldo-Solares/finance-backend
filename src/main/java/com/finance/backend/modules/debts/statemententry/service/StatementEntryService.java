@@ -21,10 +21,15 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 @Service
 @Transactional
 public class StatementEntryService {
+
+        private static final Set<String> RECURRING_MERCHANTS = Set.of(
+                        "netflix", "totalplay", "gimnasio", "smartfit", "spotify");
 
         private final StatementEntryRepository statementEntryRepository;
         private final StatementRepository statementRepository;
@@ -143,27 +148,27 @@ public class StatementEntryService {
                         CreateStatementEntryRequest request,
                         String email) {
 
-                validateEntryType(
-                                request.entryType(),
-                                request.msiCurrent(),
-                                request.msiTotal());
-
                 Statement statement = getOwnedStatement(
                                 request.statementId(),
                                 email);
 
                 Concept concept = getConcept(
                                 request.conceptId());
+                String merchant = resolveMerchant(request.merchant(), statement);
+                StatementEntryType entryType = resolveEntryType(concept, merchant);
+
+                validateEntryType(
+                                entryType,
+                                request.msiCurrent(),
+                                request.msiTotal());
 
                 StatementEntry entry = StatementEntryMapper.toEntity(
                                 request,
                                 statement,
                                 concept);
 
-                entry.setMerchant(
-                                resolveMerchant(
-                                                request.merchant(),
-                                                statement));
+                entry.setMerchant(merchant);
+                entry.setEntryType(entryType);
 
                 calculateMsiValues(
                                 entry);
@@ -184,11 +189,6 @@ public class StatementEntryService {
                         UpdateStatementEntryRequest request,
                         String email) {
 
-                validateEntryType(
-                                request.entryType(),
-                                request.msiCurrent(),
-                                request.msiTotal());
-
                 StatementEntry entry = getOwnedEntry(
                                 entryId,
                                 email);
@@ -199,6 +199,13 @@ public class StatementEntryService {
 
                 Concept concept = getConcept(
                                 request.conceptId());
+                String merchant = resolveMerchant(request.merchant(), statement);
+                StatementEntryType entryType = resolveEntryType(concept, merchant);
+
+                validateEntryType(
+                                entryType,
+                                request.msiCurrent(),
+                                request.msiTotal());
 
                 StatementEntryMapper.updateEntity(
                                 entry,
@@ -206,10 +213,8 @@ public class StatementEntryService {
                                 statement,
                                 concept);
 
-                entry.setMerchant(
-                                resolveMerchant(
-                                                request.merchant(),
-                                                statement));
+                entry.setMerchant(merchant);
+                entry.setEntryType(entryType);
 
                 calculateMsiValues(
                                 entry);
@@ -287,6 +292,36 @@ public class StatementEntryService {
                 return defaultMerchant == null || defaultMerchant.isBlank()
                                 ? null
                                 : defaultMerchant;
+        }
+
+        private StatementEntryType resolveEntryType(
+                        Concept category,
+                        String merchant) {
+
+                if ("Suscripciones".equalsIgnoreCase(category.getName().trim())) {
+                        return StatementEntryType.RECURRING;
+                }
+
+                String normalizedMerchant = normalizeMerchantKey(merchant);
+
+                return RECURRING_MERCHANTS.contains(normalizedMerchant)
+                                ? StatementEntryType.RECURRING
+                                : StatementEntryType.PURCHASE;
+        }
+
+        private String normalizeMerchantKey(String merchant) {
+                if (merchant == null) {
+                        return "";
+                }
+
+                String normalized = merchant.toLowerCase(Locale.ROOT);
+                StringBuilder key = new StringBuilder();
+
+                normalized.codePoints()
+                                .filter(Character::isLetterOrDigit)
+                                .forEach(key::appendCodePoint);
+
+                return key.toString();
         }
 
         // ===================
@@ -411,6 +446,6 @@ public class StatementEntryService {
                                                 conceptId)
                                 .orElseThrow(
                                                 () -> new ResourceNotFoundException(
-                                                                "Concepto no encontrado"));
+                                                                "Categoría no encontrada"));
         }
 }

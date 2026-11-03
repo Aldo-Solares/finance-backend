@@ -185,7 +185,7 @@ public class StatementService {
                                 statement);
 
                 if (previousStatement != null) {
-                        createNextMsiEntries(
+                        createNextEntries(
                                         previousStatement,
                                         savedStatement,
                                         email);
@@ -332,7 +332,7 @@ public class StatementService {
         // CREATE NEXT MSI
         // ===================
 
-        public void createNextMsiEntries(
+        public void createNextEntries(
                         Statement previousStatement,
                         Statement newStatement,
                         String email) {
@@ -343,6 +343,11 @@ public class StatementService {
                                                 email);
 
                 for (StatementEntry previousEntry : previousEntries) {
+
+                        if (previousEntry.getEntryType() == StatementEntryType.RECURRING) {
+                                createRecurringEntry(previousEntry, newStatement);
+                                continue;
+                        }
 
                         if (!hasActiveMsi(
                                         previousEntry)) {
@@ -373,8 +378,11 @@ public class StatementService {
                         newEntry.setDebtor(
                                         previousEntry.getDebtor());
 
-                        newEntry.setSpecification(
-                                        previousEntry.getSpecification());
+                        newEntry.setDescription(
+                                        previousEntry.getDescription());
+
+                        newEntry.setMerchant(
+                                        previousEntry.getMerchant());
 
                         newEntry.setNotes(
                                         previousEntry.getNotes());
@@ -409,6 +417,30 @@ public class StatementService {
                         statementEntryRepository.save(
                                         newEntry);
                 }
+        }
+
+        private void createRecurringEntry(
+                        StatementEntry previousEntry,
+                        Statement newStatement) {
+
+                StatementEntry newEntry = new StatementEntry();
+                newEntry.setStatement(newStatement);
+                newEntry.setConcept(previousEntry.getConcept());
+                newEntry.setDebtor(previousEntry.getDebtor());
+                newEntry.setDescription(previousEntry.getDescription());
+                newEntry.setMerchant(previousEntry.getMerchant());
+                newEntry.setNotes(previousEntry.getNotes());
+                newEntry.setEntryType(StatementEntryType.RECURRING);
+                newEntry.setDate(previousEntry.getDate());
+                newEntry.setAmount(previousEntry.getAmount());
+                newEntry.setPaid(false);
+                newEntry.setMsiCurrent(previousEntry.getMsiCurrent());
+                newEntry.setMsiTotal(previousEntry.getMsiTotal());
+                newEntry.setPurchaseAmount(previousEntry.getPurchaseAmount());
+                newEntry.setRemainingMsi(previousEntry.getRemainingMsi());
+                newEntry.setRemainingMsiAmount(previousEntry.getRemainingMsiAmount());
+
+                statementEntryRepository.save(newEntry);
         }
 
         private boolean hasActiveMsi(

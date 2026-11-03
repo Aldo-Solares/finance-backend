@@ -4,23 +4,23 @@ import java.math.BigDecimal;
 
 public record DebtDashboardCardResponse(
 
-                Long userCardId,
+        Long userCardId,
 
-                Long cardId,
+        Long cardId,
 
-                String bank,
+        String bank,
 
-                String cardName,
+        String cardName,
 
-                BigDecimal totalExpenses,
+        BigDecimal totalExpenses,
 
-                BigDecimal totalPaid,
+        BigDecimal totalPaid,
 
-                BigDecimal totalPending,
+        BigDecimal totalPending,
 
-                long totalEntries,
+        long totalEntries,
 
-                BigDecimal percentage
+        BigDecimal percentage
 
 ) {
 }
