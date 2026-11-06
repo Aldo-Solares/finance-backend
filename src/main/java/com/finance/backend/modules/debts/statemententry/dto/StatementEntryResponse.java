@@ -20,9 +20,7 @@ public record StatementEntryResponse(
                 LocalDate date,
                 BigDecimal amount,
                 Boolean paid,
-                Integer installmentNumber,
-                Integer totalInstallments,
-                BigDecimal purchaseAmount,
-                Integer remainingInstallments,
-                BigDecimal remainingInstallmentsAmount) {
+                Long msiPurchaseId,
+                Integer monthlyPaymentNumber,
+                Integer totalMonthlyPayments) {
 }

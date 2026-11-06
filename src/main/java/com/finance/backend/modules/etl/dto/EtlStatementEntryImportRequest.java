@@ -1,0 +1,23 @@
+package com.finance.backend.modules.etl.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
+public record EtlStatementEntryImportRequest(
+        @NotBlank String importKey,
+        @NotNull Long statementId,
+        @NotNull Long categoryId,
+        @NotBlank String debtor,
+        String description,
+        String merchant,
+        String notes,
+        LocalDate date,
+        @NotNull @Positive BigDecimal amount,
+        @NotNull Boolean paid,
+        Integer monthlyPaymentNumber,
+        Integer totalMonthlyPayments) {
+}

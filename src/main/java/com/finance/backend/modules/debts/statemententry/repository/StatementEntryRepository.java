@@ -17,8 +17,28 @@ public interface StatementEntryRepository
         boolean existsByStatementStatementId(
                         Long statementId);
 
+        long countByStatementStatementId(
+                        Long statementId);
+
+        long countByStatementStatementIdAndPaidFalse(
+                        Long statementId);
+
+        List<StatementEntry> findByStatementStatementId(
+                        Long statementId);
+
+        List<StatementEntry> findByStatementStatementIdIn(
+                        List<Long> statementIds);
+
         boolean existsByCategoryCategoryId(
                         Long categoryId);
+
+        Optional<StatementEntry> findByImportKey(
+                        String importKey);
+
+        Optional<StatementEntry> findFirstByMsiPurchaseMsiPurchaseIdAndStatementStatementIdAndMonthlyPaymentNumber(
+                        Long msiPurchaseId,
+                        Long statementId,
+                        Integer monthlyPaymentNumber);
 
         List<StatementEntry> findByStatementStatementIdAndDebtor(
                         Long statementId,

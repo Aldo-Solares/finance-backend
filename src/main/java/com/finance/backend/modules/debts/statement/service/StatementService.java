@@ -11,14 +11,12 @@ import com.finance.backend.modules.debts.statement.model.Statement;
 import com.finance.backend.modules.debts.statement.model.StatementStatus;
 import com.finance.backend.modules.debts.statement.repository.StatementRepository;
 import com.finance.backend.modules.debts.statemententry.model.StatementEntry;
-import com.finance.backend.modules.debts.statemententry.model.StatementEntryType;
 import com.finance.backend.modules.debts.statemententry.repository.StatementEntryRepository;
 import com.finance.backend.modules.debts.usercard.model.UserCard;
 import com.finance.backend.modules.debts.usercard.repository.UserCardRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,14 +43,14 @@ public class StatementService {
         // FIND ALL
         // ===================
 
-        @Transactional(readOnly = true)
         public List<StatementResponse> findAll(
                         String email) {
 
-                return statementRepository
+                List<Statement> statements = statementRepository
                                 .findByUserCardUserEmailIgnoreCaseOrderByYearDescMonthDesc(
-                                                email)
-                                .stream()
+                                                email);
+                refreshPaymentStatuses(statements);
+                return statements.stream()
                                 .map(StatementMapper::toResponse)
                                 .toList();
         }
@@ -61,7 +59,6 @@ public class StatementService {
         // FIND BY USER CARD
         // ===================
 
-        @Transactional(readOnly = true)
         public List<StatementResponse> findByUserCardId(
                         Long userCardId,
                         String email) {
@@ -70,11 +67,12 @@ public class StatementService {
                                 userCardId,
                                 email);
 
-                return statementRepository
+                List<Statement> statements = statementRepository
                                 .findByUserCardUserCardIdAndUserCardUserEmailIgnoreCaseOrderByYearDescMonthDesc(
                                                 userCardId,
-                                                email)
-                                .stream()
+                                                email);
+                refreshPaymentStatuses(statements);
+                return statements.stream()
                                 .map(StatementMapper::toResponse)
                                 .toList();
         }
@@ -83,15 +81,13 @@ public class StatementService {
         // FIND BY ID
         // ===================
 
-        @Transactional(readOnly = true)
         public StatementResponse findById(
                         Long statementId,
                         String email) {
 
-                return StatementMapper.toResponse(
-                                getOwnedStatement(
-                                                statementId,
-                                                email));
+                Statement statement = getOwnedStatement(statementId, email);
+                updatePaymentStatus(statement);
+                return StatementMapper.toResponse(statement);
         }
 
         // ===================
@@ -163,12 +159,6 @@ public class StatementService {
                                                         + month);
                 }
 
-                Statement previousStatement = findPreviousStatement(
-                                request.userCardId(),
-                                year,
-                                month,
-                                email);
-
                 Statement statement = StatementMapper.toEntity(
                                 request,
                                 userCard);
@@ -177,19 +167,10 @@ public class StatementService {
                                 false);
 
                 statement.setStatus(
-                                calculateStatus(
-                                                statement,
-                                                LocalDate.now()));
+                                StatementStatus.PAYMENT_PENDING);
 
                 Statement savedStatement = statementRepository.save(
                                 statement);
-
-                if (previousStatement != null) {
-                        createNextEntries(
-                                        previousStatement,
-                                        savedStatement,
-                                        email);
-                }
 
                 return StatementMapper.toResponse(
                                 savedStatement);
@@ -250,10 +231,7 @@ public class StatementService {
                                 request,
                                 userCard);
 
-                statement.setStatus(
-                                calculateStatus(
-                                                statement,
-                                                LocalDate.now()));
+                updatePaymentStatus(statement);
 
                 Statement updatedStatement = statementRepository.save(
                                 statement);
@@ -275,8 +253,13 @@ public class StatementService {
                                 statementId,
                                 email);
 
-                statement.setPaid(
-                                paid);
+                List<StatementEntry> entries = statementEntryRepository
+                                .findByStatementStatementId(statementId);
+                entries.forEach(entry -> entry.setPaid(Boolean.TRUE.equals(paid)));
+                if (!entries.isEmpty()) {
+                        statementEntryRepository.saveAll(entries);
+                }
+                updatePaymentStatus(statement);
 
                 Statement updatedStatement = statementRepository.save(
                                 statement);
@@ -302,25 +285,19 @@ public class StatementService {
                                                 userCardId,
                                                 email);
 
-                List<Statement> statementsToUpdate = new ArrayList<>();
-
-                for (Statement statement : statements) {
-
-                        if (!Boolean.TRUE.equals(
-                                        statement.getPaid())) {
-
-                                statement.setPaid(
-                                                true);
-
-                                statementsToUpdate.add(
-                                                statement);
+                List<Long> statementIds = statements.stream()
+                                .map(Statement::getStatementId)
+                                .toList();
+                if (!statementIds.isEmpty()) {
+                        List<StatementEntry> entries = statementEntryRepository
+                                        .findByStatementStatementIdIn(statementIds);
+                        entries.forEach(entry -> entry.setPaid(true));
+                        if (!entries.isEmpty()) {
+                                statementEntryRepository.saveAll(entries);
                         }
                 }
 
-                if (!statementsToUpdate.isEmpty()) {
-                        statementRepository.saveAll(
-                                        statementsToUpdate);
-                }
+                refreshPaymentStatuses(statements);
 
                 return statements
                                 .stream()
@@ -329,160 +306,26 @@ public class StatementService {
         }
 
         // ===================
-        // CREATE NEXT MSI
-        // ===================
-
-        public void createNextEntries(
-                        Statement previousStatement,
-                        Statement newStatement,
-                        String email) {
-
-                List<StatementEntry> previousEntries = statementEntryRepository
-                                .findByStatementStatementIdAndStatementUserCardUserEmailIgnoreCaseOrderByDateDesc(
-                                                previousStatement.getStatementId(),
-                                                email);
-
-                for (StatementEntry previousEntry : previousEntries) {
-
-                        if (previousEntry.getEntryType() == StatementEntryType.RECURRING) {
-                                createRecurringEntry(previousEntry, newStatement);
-                                continue;
-                        }
-
-                        if (!hasActiveMsi(
-                                        previousEntry)) {
-
-                                continue;
-                        }
-
-                        int nextInstallmentNumber = previousEntry.getInstallmentNumber() + 1;
-
-                        int remainingInstallments = previousEntry.getTotalInstallments()
-                                        - nextInstallmentNumber
-                                        + 1;
-
-                        BigDecimal remainingInstallmentsAmount = previousEntry
-                                        .getAmount()
-                                        .multiply(
-                                                        BigDecimal.valueOf(
-                                                                        remainingInstallments));
-
-                        StatementEntry newEntry = new StatementEntry();
-
-                        newEntry.setStatement(
-                                        newStatement);
-
-                        newEntry.setCategory(
-                                        previousEntry.getCategory());
-
-                        newEntry.setDebtor(
-                                        previousEntry.getDebtor());
-
-                        newEntry.setDescription(
-                                        previousEntry.getDescription());
-
-                        newEntry.setMerchant(
-                                        previousEntry.getMerchant());
-
-                        newEntry.setNotes(
-                                        previousEntry.getNotes());
-
-                        newEntry.setEntryType(
-                                        previousEntry.getEntryType());
-
-                        newEntry.setDate(
-                                        previousEntry.getDate());
-
-                        newEntry.setAmount(
-                                        previousEntry.getAmount());
-
-                        newEntry.setPaid(
-                                        false);
-
-                        newEntry.setInstallmentNumber(
-                                        nextInstallmentNumber);
-
-                        newEntry.setTotalInstallments(
-                                        previousEntry.getTotalInstallments());
-
-                        newEntry.setPurchaseAmount(
-                                        previousEntry.getPurchaseAmount());
-
-                        newEntry.setRemainingInstallments(
-                                        remainingInstallments);
-
-                        newEntry.setRemainingInstallmentsAmount(
-                                        remainingInstallmentsAmount);
-
-                        statementEntryRepository.save(
-                                        newEntry);
-                }
-        }
-
-        private void createRecurringEntry(
-                        StatementEntry previousEntry,
-                        Statement newStatement) {
-
-                StatementEntry newEntry = new StatementEntry();
-                newEntry.setStatement(newStatement);
-                newEntry.setCategory(previousEntry.getCategory());
-                newEntry.setDebtor(previousEntry.getDebtor());
-                newEntry.setDescription(previousEntry.getDescription());
-                newEntry.setMerchant(previousEntry.getMerchant());
-                newEntry.setNotes(previousEntry.getNotes());
-                newEntry.setEntryType(StatementEntryType.RECURRING);
-                newEntry.setDate(previousEntry.getDate());
-                newEntry.setAmount(previousEntry.getAmount());
-                newEntry.setPaid(false);
-                newEntry.setInstallmentNumber(previousEntry.getInstallmentNumber());
-                newEntry.setTotalInstallments(previousEntry.getTotalInstallments());
-                newEntry.setPurchaseAmount(previousEntry.getPurchaseAmount());
-                newEntry.setRemainingInstallments(previousEntry.getRemainingInstallments());
-                newEntry.setRemainingInstallmentsAmount(previousEntry.getRemainingInstallmentsAmount());
-
-                statementEntryRepository.save(newEntry);
-        }
-
-        private boolean hasActiveMsi(
-                        StatementEntry entry) {
-
-                return entry.getEntryType() == StatementEntryType.PURCHASE
-                                && entry.getInstallmentNumber() != null
-                                && entry.getTotalInstallments() != null
-                                && entry.getInstallmentNumber() < entry.getTotalInstallments();
-        }
-
-        // ===================
         // REFRESH STATUS
         // ===================
 
         public void refreshStatuses() {
-
-                LocalDate today = LocalDate.now();
-
                 List<Statement> statements = statementRepository.findAll();
+                refreshPaymentStatuses(statements);
+        }
 
-                List<Statement> changedStatements = new ArrayList<>();
+        public void refreshPaymentStatuses(String email) {
+                List<Statement> statements = statementRepository
+                                .findByUserCardUserEmailIgnoreCaseOrderByYearDescMonthDesc(email);
+                refreshPaymentStatuses(statements);
+        }
 
-                for (Statement statement : statements) {
-
-                        StatementStatus newStatus = calculateStatus(
-                                        statement,
-                                        today);
-
-                        if (statement.getStatus() != newStatus) {
-
-                                statement.setStatus(
-                                                newStatus);
-
-                                changedStatements.add(
-                                                statement);
-                        }
-                }
-
-                if (!changedStatements.isEmpty()) {
-                        statementRepository.saveAll(
-                                        changedStatements);
+        public void refreshPaymentStatus(Long statementId) {
+                Statement statement = statementRepository.findById(statementId)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Estado de cuenta no encontrado"));
+                if (updatePaymentStatus(statement)) {
+                        statementRepository.save(statement);
                 }
         }
 
@@ -515,70 +358,32 @@ public class StatementService {
         // STATUS
         // ===================
 
-        private StatementStatus calculateStatus(
-                        Statement statement,
-                        LocalDate today) {
-
-                LocalDate periodStart = statement.getPeriodStart();
-
-                LocalDate periodEnd = statement.getPeriodEnd();
-
-                LocalDate paymentDate = statement.getPaymentDate();
-
-                if (periodStart == null
-                                || periodEnd == null
-                                || paymentDate == null) {
-
-                        throw new IllegalStateException(
-                                        "No se puede calcular el estado del periodo sin periodStart, periodEnd y paymentDate");
-                }
-
-                if (today.isBefore(
-                                periodStart)) {
-
-                        return StatementStatus.UPCOMING;
-                }
-
-                if (!today.isAfter(
-                                periodEnd)) {
-
-                        return StatementStatus.ACTIVE;
-                }
-
-                if (!today.isAfter(
-                                paymentDate)) {
-
-                        return StatementStatus.PAYMENT_PENDING;
-                }
-
-                return StatementStatus.CLOSED;
+        private boolean updatePaymentStatus(Statement statement) {
+                Long statementId = statement.getStatementId();
+                long entryCount = statementEntryRepository.countByStatementStatementId(statementId);
+                long unpaidCount = statementEntryRepository
+                                .countByStatementStatementIdAndPaidFalse(statementId);
+                boolean allEntriesPaid = entryCount > 0 && unpaidCount == 0;
+                StatementStatus status = allEntriesPaid
+                                ? StatementStatus.CLOSED
+                                : StatementStatus.PAYMENT_PENDING;
+                boolean changed = !Boolean.valueOf(allEntriesPaid).equals(statement.getPaid())
+                                || statement.getStatus() != status;
+                statement.setPaid(allEntriesPaid);
+                statement.setStatus(status);
+                return changed;
         }
 
-        // ===================
-        // PREVIOUS STATEMENT
-        // ===================
-
-        private Statement findPreviousStatement(
-                        Long userCardId,
-                        Integer year,
-                        Integer month,
-                        String email) {
-
-                int previousYear = year;
-                int previousMonth = month - 1;
-
-                if (previousMonth == 0) {
-                        previousMonth = 12;
-                        previousYear--;
+        private void refreshPaymentStatuses(List<Statement> statements) {
+                List<Statement> changedStatements = new ArrayList<>();
+                for (Statement statement : statements) {
+                        if (updatePaymentStatus(statement)) {
+                                changedStatements.add(statement);
+                        }
                 }
-
-                return statementRepository
-                                .findByUserCardUserCardIdAndYearAndMonthAndUserCardUserEmailIgnoreCase(
-                                                userCardId,
-                                                previousYear,
-                                                previousMonth,
-                                                email)
-                                .orElse(null);
+                if (!changedStatements.isEmpty()) {
+                        statementRepository.saveAll(changedStatements);
+                }
         }
 
         // ===================

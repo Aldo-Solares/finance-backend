@@ -2,7 +2,6 @@ package com.finance.backend.modules.debts.statement.export;
 
 import com.finance.backend.modules.debts.statement.dto.StatementResponse;
 import com.finance.backend.modules.debts.statemententry.dto.StatementEntryResponse;
-import com.finance.backend.modules.debts.statemententry.model.StatementEntryType;
 
 import org.apache.poi.ss.SpreadsheetVersion;
 import org.apache.poi.ss.usermodel.*;
@@ -42,14 +41,14 @@ public class StatementExcelWorkbookGenerator {
     private static final int DETAIL_HEADER_ROW = 10; // Fila 11 de Excel
     private static final int DETAIL_FIRST_ROW = 11; // Fila 12 de Excel
     private static final int FIRST_DETAIL_COLUMN = 1; // Columna B
-    private static final int LAST_DETAIL_COLUMN = 13; // Columna N
+    private static final int LAST_DETAIL_COLUMN = 8; // Columna I
+    private static final int TEMPLATE_DETAIL_LAST_COLUMN = 13; // La plantilla anterior llegaba a N.
     private static final List<String> DETAIL_HEADERS = List.of(
             "Categoría", "Descripción del gasto", "Comercio", "Deudor", "Fecha", "MSI",
-            "Pagado", "Importe", "Total compra", "Tipo", "MSI restantes",
-            "Saldo MSI restante", "Notas");
+            "Pagado", "Importe");
     // Reutiliza estilos existentes de texto, fecha y moneda al extender la tabla.
     private static final int[] DETAIL_STYLE_SOURCE_COLUMNS = {
-            1, 2, 2, 3, 4, 5, 6, 8, 7, 2, 5, 8, 2
+            1, 2, 2, 3, 4, 5, 6, 8
     };
 
     public byte[] generate(
@@ -160,11 +159,6 @@ public class StatementExcelWorkbookGenerator {
         writeDate(sheet, 2, 8, maxDate(statements, StatementResponse::periodEnd));
         writeDate(sheet, 4, 7, minDate(statements, StatementResponse::paymentDate));
         writeDate(sheet, 4, 8, maxDate(statements, StatementResponse::paymentDate));
-        sheet.setColumnWidth(10, 14 * 256);
-        sheet.setColumnWidth(11, 16 * 256);
-        sheet.setColumnWidth(12, 22 * 256);
-        sheet.setColumnWidth(13, 32 * 256);
-
         Row headerRow = getOrCreateRow(sheet, DETAIL_HEADER_ROW);
         for (int i = 0; i < DETAIL_HEADERS.size(); i++) {
             int column = FIRST_DETAIL_COLUMN + i;
@@ -197,27 +191,12 @@ public class StatementExcelWorkbookGenerator {
             writeText(row, 3, entry.merchant());
             writeText(row, 4, entry.debtor());
 
-            if (entry.entryType() == StatementEntryType.RECURRING) {
-                writeText(row, 5, "Permanente");
-                writeText(row, 6, "Permanente");
-            } else {
-                writeDate(row, 5, entry.date());
-                writeText(row, 6, msiLabel(entry));
-            }
+            writeDate(row, 5, entry.date());
+            writeText(row, 6, msiLabel(entry));
 
             writeText(row, 7, paidLabel(entry.paid()));
-            if (entry.purchaseAmount() == null) {
-                writeText(row, 9, "-");
-            } else {
-                writeMoney(row, 9, entry.purchaseAmount());
-            }
-
             BigDecimal amount = amountOrZero(entry.amount());
             writeMoney(row, 8, amount);
-            writeText(row, 10, entryTypeLabel(entry.entryType()));
-            writeInteger(row, 11, entry.remainingInstallments());
-            writeOptionalMoney(row, 12, entry.remainingInstallmentsAmount());
-            writeText(row, 13, entry.notes());
             monthTotal = monthTotal.add(amount);
             rowIndex++;
         }
@@ -345,7 +324,7 @@ public class StatementExcelWorkbookGenerator {
             if (row == null) {
                 continue;
             }
-            for (int c = FIRST_DETAIL_COLUMN; c <= LAST_DETAIL_COLUMN; c++) {
+            for (int c = FIRST_DETAIL_COLUMN; c <= TEMPLATE_DETAIL_LAST_COLUMN; c++) {
                 Cell cell = row.getCell(c);
                 if (cell != null) {
                     cell.setBlank();
@@ -456,10 +435,10 @@ public class StatementExcelWorkbookGenerator {
     }
 
     private static String msiLabel(StatementEntryResponse entry) {
-        if (entry.installmentNumber() == null || entry.totalInstallments() == null) {
+        if (entry.monthlyPaymentNumber() == null || entry.totalMonthlyPayments() == null) {
             return "No";
         }
-        return entry.installmentNumber() + " de " + entry.totalInstallments();
+        return entry.monthlyPaymentNumber() + " de " + entry.totalMonthlyPayments();
     }
 
     private static String paidLabel(Boolean paid) {
@@ -467,13 +446,6 @@ public class StatementExcelWorkbookGenerator {
             return "";
         }
         return paid ? "Sí" : "No";
-    }
-
-    private static String entryTypeLabel(StatementEntryType entryType) {
-        if (entryType == null) {
-            return "";
-        }
-        return entryType == StatementEntryType.RECURRING ? "Recurrente" : "Compra";
     }
 
     private static String safe(String value) {
@@ -515,23 +487,6 @@ public class StatementExcelWorkbookGenerator {
             currencyStyle.setDataFormat(row.getSheet().getWorkbook()
                     .createDataFormat().getFormat(CURRENCY_FORMAT));
             cell.setCellStyle(currencyStyle);
-        }
-    }
-
-    private static void writeOptionalMoney(Row row, int colIndex, BigDecimal value) {
-        if (value == null) {
-            getOrCreateCell(row, colIndex).setBlank();
-            return;
-        }
-        writeMoney(row, colIndex, value);
-    }
-
-    private static void writeInteger(Row row, int colIndex, Integer value) {
-        Cell cell = getOrCreateCell(row, colIndex);
-        if (value == null) {
-            cell.setBlank();
-        } else {
-            cell.setCellValue(value);
         }
     }
 

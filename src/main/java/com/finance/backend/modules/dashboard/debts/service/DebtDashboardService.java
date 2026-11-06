@@ -9,6 +9,7 @@ import com.finance.backend.modules.dashboard.debts.specification.StatementEntryS
 import com.finance.backend.modules.debts.card.model.Card;
 import com.finance.backend.modules.debts.concept.model.Concept;
 import com.finance.backend.modules.debts.statement.model.Statement;
+import com.finance.backend.modules.debts.statement.service.StatementService;
 import com.finance.backend.modules.debts.statemententry.model.StatementEntry;
 import com.finance.backend.modules.debts.statemententry.repository.StatementEntryRepository;
 import com.finance.backend.modules.debts.usercard.model.UserCard;
@@ -36,17 +37,22 @@ public class DebtDashboardService {
         private static final int PERCENTAGE_SCALE = 2;
 
         private final StatementEntryRepository statementEntryRepository;
+        private final StatementService statementService;
 
         public DebtDashboardService(
-                        StatementEntryRepository statementEntryRepository) {
+                        StatementEntryRepository statementEntryRepository,
+                        StatementService statementService) {
 
                 this.statementEntryRepository = statementEntryRepository;
+                this.statementService = statementService;
         }
 
-        @Transactional(readOnly = true)
+        @Transactional
         public DebtDashboardResponse getDashboard(
                         DebtDashboardFilter filter,
                         String email) {
+
+                statementService.refreshPaymentStatuses(email);
 
                 DebtDashboardFilter resolvedFilter = resolveFilter(filter);
 

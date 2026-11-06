@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -93,6 +94,15 @@ public class SecurityConfig {
                                                 JwtFilter.class)
 
                                 .build();
+        }
+
+        @Bean
+        public FilterRegistrationBean<RateLimitFilter> rateLimitFilterServletRegistration(
+                        RateLimitFilter rateLimitFilter) {
+                FilterRegistrationBean<RateLimitFilter> registration = new FilterRegistrationBean<>(
+                                rateLimitFilter);
+                registration.setEnabled(false);
+                return registration;
         }
 
         // ===================

@@ -1,6 +1,7 @@
 package com.finance.backend.modules.debts.statemententry.model;
 
 import com.finance.backend.modules.debts.concept.model.Concept;
+import com.finance.backend.modules.debts.msipurchase.model.MsiPurchase;
 import com.finance.backend.modules.debts.statement.model.Statement;
 import jakarta.persistence.*;
 
@@ -8,7 +9,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "statement_entries")
+@Table(name = "statement_entries", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_statement_entry_import_key", columnNames = "import_key")
+})
 public class StatementEntry {
 
     @Id
@@ -23,6 +26,10 @@ public class StatementEntry {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "category_id", nullable = false)
     private Concept category;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "msi_purchase_id")
+    private MsiPurchase msiPurchase;
 
     @Column(name = "debtor", nullable = false)
     private String debtor;
@@ -48,20 +55,11 @@ public class StatementEntry {
     @Column(name = "paid", nullable = false)
     private Boolean paid;
 
-    @Column(name = "installment_number")
-    private Integer installmentNumber;
+    @Column(name = "monthly_payment_number")
+    private Integer monthlyPaymentNumber;
 
-    @Column(name = "total_installments")
-    private Integer totalInstallments;
-
-    @Column(name = "purchase_amount", precision = 14, scale = 2)
-    private BigDecimal purchaseAmount;
-
-    @Column(name = "remaining_installments")
-    private Integer remainingInstallments;
-
-    @Column(name = "remaining_installments_amount", precision = 14, scale = 2)
-    private BigDecimal remainingInstallmentsAmount;
+    @Column(name = "import_key", length = 500)
+    private String importKey;
 
     public Long getEntryId() {
         return entryId;
@@ -85,6 +83,14 @@ public class StatementEntry {
 
     public void setCategory(Concept category) {
         this.category = category;
+    }
+
+    public MsiPurchase getMsiPurchase() {
+        return msiPurchase;
+    }
+
+    public void setMsiPurchase(MsiPurchase msiPurchase) {
+        this.msiPurchase = msiPurchase;
     }
 
     public String getDebtor() {
@@ -151,43 +157,19 @@ public class StatementEntry {
         this.paid = paid;
     }
 
-    public Integer getInstallmentNumber() {
-        return installmentNumber;
+    public Integer getMonthlyPaymentNumber() {
+        return monthlyPaymentNumber;
     }
 
-    public void setInstallmentNumber(Integer installmentNumber) {
-        this.installmentNumber = installmentNumber;
+    public void setMonthlyPaymentNumber(Integer monthlyPaymentNumber) {
+        this.monthlyPaymentNumber = monthlyPaymentNumber;
     }
 
-    public Integer getTotalInstallments() {
-        return totalInstallments;
+    public String getImportKey() {
+        return importKey;
     }
 
-    public void setTotalInstallments(Integer totalInstallments) {
-        this.totalInstallments = totalInstallments;
-    }
-
-    public BigDecimal getPurchaseAmount() {
-        return purchaseAmount;
-    }
-
-    public void setPurchaseAmount(BigDecimal purchaseAmount) {
-        this.purchaseAmount = purchaseAmount;
-    }
-
-    public Integer getRemainingInstallments() {
-        return remainingInstallments;
-    }
-
-    public void setRemainingInstallments(Integer remainingInstallments) {
-        this.remainingInstallments = remainingInstallments;
-    }
-
-    public BigDecimal getRemainingInstallmentsAmount() {
-        return remainingInstallmentsAmount;
-    }
-
-    public void setRemainingInstallmentsAmount(BigDecimal remainingInstallmentsAmount) {
-        this.remainingInstallmentsAmount = remainingInstallmentsAmount;
+    public void setImportKey(String importKey) {
+        this.importKey = importKey;
     }
 }

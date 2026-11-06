@@ -28,12 +28,6 @@ public interface StatementRepository
                         Long userCardId,
                         String email);
 
-        Optional<Statement> findByUserCardUserCardIdAndYearAndMonthAndUserCardUserEmailIgnoreCase(
-                        Long userCardId,
-                        Integer year,
-                        Integer month,
-                        String email);
-
         Optional<Statement> findFirstByUserCardUserCardIdAndUserCardUserEmailIgnoreCaseOrderByYearDescMonthDesc(
                         Long userCardId,
                         String email);

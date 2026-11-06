@@ -2,7 +2,6 @@
 
 package com.finance.backend.modules.debts.statemententry.dto;
 
-import com.finance.backend.modules.debts.statemententry.model.StatementEntryType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -17,10 +16,9 @@ public record UpdateStatementEntryRequest(
                 String description,
                 String merchant,
                 String notes,
-                @NotNull StatementEntryType entryType,
                 LocalDate date,
                 @NotNull @Positive BigDecimal amount,
                 @NotNull Boolean paid,
-                Integer installmentNumber,
-                Integer totalInstallments) {
+                Integer monthlyPaymentNumber,
+                Integer totalMonthlyPayments) {
 }

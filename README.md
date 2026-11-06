@@ -97,6 +97,15 @@ Windows:
 mvnw.cmd spring-boot:run
 ```
 
+Para ejecutar el ETL contra el backend local, inicia Spring Boot con el perfil `local` en PowerShell:
+
+```powershell
+$env:SPRING_PROFILES_ACTIVE = "local"
+.\mvnw.cmd spring-boot:run
+```
+
+Este perfil eleva el límite únicamente para `POST /api/statement-entries` y `POST /api/etl/statement-entries/import`. En Railway no actives `local`; `application.properties` mantiene ese límite deshabilitado. El ETL apunta por defecto a `http://localhost:9000/api`; si `API_URL` está definido en su entorno local, debe apuntar también a esa dirección.
+
 También puedes verificar la compilación con:
 
 ```bash
@@ -249,26 +258,27 @@ card + year + month
 
 ```text
 entryId
-statement
-concept
-user
+statementId
+categoryId
+debtor
 description
-purchaseDate
-installmentAmount
+merchant
+date
+amount
 paid
-msiCurrent
-msiTotal
-purchaseTotal
-remainingMonths
-remainingTotal
+msiPurchaseId
+monthlyPaymentNumber
+totalMonthlyPayments
 ```
+
+`monthlyPaymentNumber` indica qué mensualidad es este movimiento; `totalMonthlyPayments` indica cuántas mensualidades tiene la compra MSI. Los meses restantes se calculan como `totalMonthlyPayments - monthlyPaymentNumber`; no se guardan en la base de datos.
 
 Relaciones:
 
 ```text
 StatementEntry N:1 Statement
-StatementEntry N:1 Concept
-StatementEntry N:1 User
+StatementEntry N:1 Category
+StatementEntry N:1 MsiPurchase
 ```
 
 ### Payment

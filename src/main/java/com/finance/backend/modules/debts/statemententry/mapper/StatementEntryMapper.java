@@ -27,12 +27,10 @@ public final class StatementEntryMapper {
         entry.setDescription(request.description());
         entry.setMerchant(request.merchant());
         entry.setNotes(request.notes());
-        entry.setEntryType(request.entryType());
         entry.setDate(request.date());
         entry.setAmount(request.amount());
         entry.setPaid(request.paid());
-        entry.setInstallmentNumber(request.installmentNumber());
-        entry.setTotalInstallments(request.totalInstallments());
+        entry.setMonthlyPaymentNumber(request.monthlyPaymentNumber());
 
         return entry;
     }
@@ -49,12 +47,10 @@ public final class StatementEntryMapper {
         entry.setDescription(request.description());
         entry.setMerchant(request.merchant());
         entry.setNotes(request.notes());
-        entry.setEntryType(request.entryType());
         entry.setDate(request.date());
         entry.setAmount(request.amount());
         entry.setPaid(request.paid());
-        entry.setInstallmentNumber(request.installmentNumber());
-        entry.setTotalInstallments(request.totalInstallments());
+        entry.setMonthlyPaymentNumber(request.monthlyPaymentNumber());
     }
 
     public static StatementEntryResponse toResponse(
@@ -73,10 +69,12 @@ public final class StatementEntryMapper {
                 entry.getDate(),
                 entry.getAmount(),
                 entry.getPaid(),
-                entry.getInstallmentNumber(),
-                entry.getTotalInstallments(),
-                entry.getPurchaseAmount(),
-                entry.getRemainingInstallments(),
-                entry.getRemainingInstallmentsAmount());
+                entry.getMsiPurchase() == null
+                        ? null
+                        : entry.getMsiPurchase().getMsiPurchaseId(),
+                entry.getMonthlyPaymentNumber(),
+                entry.getMsiPurchase() == null
+                        ? null
+                        : entry.getMsiPurchase().getTotalMonthlyPayments());
     }
 }

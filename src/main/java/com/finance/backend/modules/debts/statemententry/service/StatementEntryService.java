@@ -4,8 +4,11 @@ import com.finance.backend.exception.BadRequestException;
 import com.finance.backend.exception.ResourceNotFoundException;
 import com.finance.backend.modules.debts.concept.model.Concept;
 import com.finance.backend.modules.debts.concept.repository.ConceptRepository;
+import com.finance.backend.modules.debts.msipurchase.model.MsiPurchase;
+import com.finance.backend.modules.debts.msipurchase.service.MsiPurchaseService;
 import com.finance.backend.modules.debts.statement.model.Statement;
 import com.finance.backend.modules.debts.statement.repository.StatementRepository;
+import com.finance.backend.modules.debts.statement.service.StatementService;
 import com.finance.backend.modules.debts.statemententry.dto.CreateStatementEntryRequest;
 import com.finance.backend.modules.debts.statemententry.dto.StatementEntryResponse;
 import com.finance.backend.modules.debts.statemententry.dto.UpdateStatementEntryRequest;
@@ -16,33 +19,36 @@ import com.finance.backend.modules.debts.statemententry.repository.StatementEntr
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.Objects;
 
 @Service
 @Transactional
 public class StatementEntryService {
 
-        private static final Set<String> RECURRING_MERCHANTS = Set.of(
-                        "netflix", "totalplay", "gimnasio", "smartfit", "spotify");
-
         private final StatementEntryRepository statementEntryRepository;
         private final StatementRepository statementRepository;
+        private final StatementService statementService;
         private final ConceptRepository conceptRepository;
+        private final MsiPurchaseService msiPurchaseService;
+        private final StatementEntryPolicy statementEntryPolicy;
 
         public StatementEntryService(
                         StatementEntryRepository statementEntryRepository,
                         StatementRepository statementRepository,
-                        ConceptRepository conceptRepository) {
+                        StatementService statementService,
+                        ConceptRepository conceptRepository,
+                        MsiPurchaseService msiPurchaseService,
+                        StatementEntryPolicy statementEntryPolicy) {
 
                 this.statementEntryRepository = statementEntryRepository;
                 this.statementRepository = statementRepository;
+                this.statementService = statementService;
                 this.conceptRepository = conceptRepository;
+                this.msiPurchaseService = msiPurchaseService;
+                this.statementEntryPolicy = statementEntryPolicy;
         }
 
         // ===================
@@ -154,13 +160,13 @@ public class StatementEntryService {
 
                 Concept concept = getCategory(
                                 request.categoryId());
-                String merchant = resolveMerchant(request.merchant(), statement);
-                StatementEntryType entryType = resolveEntryType(concept, merchant);
+                String merchant = resolveMerchant(request.merchant());
+                StatementEntryType entryType = statementEntryPolicy.classify(concept, merchant);
 
                 validateEntryType(
                                 entryType,
-                                request.installmentNumber(),
-                                request.totalInstallments());
+                                request.monthlyPaymentNumber(),
+                                request.totalMonthlyPayments());
 
                 StatementEntry entry = StatementEntryMapper.toEntity(
                                 request,
@@ -169,12 +175,18 @@ public class StatementEntryService {
 
                 entry.setMerchant(merchant);
                 entry.setEntryType(entryType);
+                entry.setDate(statementEntryPolicy.resolveDate(
+                                request.date(), statement, merchant, entryType));
 
-                calculateMsiValues(
-                                entry);
+                entry.setMsiPurchase(resolveMsiPurchase(
+                                entry,
+                                concept,
+                                request.totalMonthlyPayments()));
 
                 StatementEntry savedEntry = statementEntryRepository.save(
                                 entry);
+
+                statementService.refreshPaymentStatus(statement.getStatementId());
 
                 return StatementEntryMapper.toResponse(
                                 savedEntry);
@@ -192,6 +204,7 @@ public class StatementEntryService {
                 StatementEntry entry = getOwnedEntry(
                                 entryId,
                                 email);
+                Long previousStatementId = entry.getStatement().getStatementId();
 
                 Statement statement = getOwnedStatement(
                                 request.statementId(),
@@ -199,13 +212,23 @@ public class StatementEntryService {
 
                 Concept concept = getCategory(
                                 request.categoryId());
-                String merchant = resolveMerchant(request.merchant(), statement);
-                StatementEntryType entryType = resolveEntryType(concept, merchant);
+                String merchant = resolveMerchant(request.merchant());
+                StatementEntryType entryType = statementEntryPolicy.classify(concept, merchant);
 
                 validateEntryType(
                                 entryType,
-                                request.installmentNumber(),
-                                request.totalInstallments());
+                                request.monthlyPaymentNumber(),
+                                request.totalMonthlyPayments());
+
+                java.time.LocalDate resolvedDate = statementEntryPolicy.resolveDate(
+                                request.date(), statement, merchant, entryType);
+                boolean existingIsMsi = entry.getMsiPurchase() != null
+                                || entry.getMonthlyPaymentNumber() != null;
+                if (existingIsMsi
+                                && !Objects.equals(entry.getDate(), resolvedDate)) {
+                        throw new BadRequestException(
+                                        "La fecha de una compra MSI es fija; conserva la fecha original de compra");
+                }
 
                 StatementEntryMapper.updateEntity(
                                 entry,
@@ -215,12 +238,20 @@ public class StatementEntryService {
 
                 entry.setMerchant(merchant);
                 entry.setEntryType(entryType);
+                entry.setDate(resolvedDate);
 
-                calculateMsiValues(
-                                entry);
+                entry.setMsiPurchase(resolveMsiPurchase(
+                                entry,
+                                concept,
+                                request.totalMonthlyPayments()));
 
                 StatementEntry updatedEntry = statementEntryRepository.save(
                                 entry);
+
+                statementService.refreshPaymentStatus(previousStatementId);
+                if (!previousStatementId.equals(statement.getStatementId())) {
+                        statementService.refreshPaymentStatus(statement.getStatementId());
+                }
 
                 return StatementEntryMapper.toResponse(
                                 updatedEntry);
@@ -245,13 +276,17 @@ public class StatementEntryService {
                 }
 
                 List<StatementEntry> entries = new ArrayList<>();
+                LinkedHashSet<Long> affectedStatementIds = new LinkedHashSet<>();
                 for (Long entryId : new LinkedHashSet<>(entryIds)) {
                         StatementEntry entry = getOwnedEntry(entryId, email);
                         entry.setPaid(true);
+                        affectedStatementIds.add(entry.getStatement().getStatementId());
                         entries.add(entry);
                 }
 
-                return statementEntryRepository.saveAll(entries)
+                List<StatementEntry> savedEntries = statementEntryRepository.saveAll(entries);
+                affectedStatementIds.forEach(statementService::refreshPaymentStatus);
+                return savedEntries
                                 .stream()
                                 .map(StatementEntryMapper::toResponse)
                                 .toList();
@@ -268,60 +303,23 @@ public class StatementEntryService {
                 StatementEntry entry = getOwnedEntry(
                                 entryId,
                                 email);
+                Long statementId = entry.getStatement().getStatementId();
 
                 statementEntryRepository.delete(
                                 entry);
+                statementService.refreshPaymentStatus(statementId);
         }
 
         // ===================
         // RESOLVE MERCHANT
         // ===================
 
-        private String resolveMerchant(
-                        String requestedMerchant,
-                        Statement statement) {
+        private String resolveMerchant(String requestedMerchant) {
 
                 if (requestedMerchant != null && !requestedMerchant.isBlank()) {
                         return requestedMerchant.trim();
                 }
-
-                String defaultMerchant = statement.getUserCard()
-                                .getCard()
-                                .getDefaultMerchant();
-
-                return defaultMerchant == null || defaultMerchant.isBlank()
-                                ? null
-                                : defaultMerchant;
-        }
-
-        private StatementEntryType resolveEntryType(
-                        Concept category,
-                        String merchant) {
-
-                if ("Suscripciones".equalsIgnoreCase(category.getName().trim())) {
-                        return StatementEntryType.RECURRING;
-                }
-
-                String normalizedMerchant = normalizeMerchantKey(merchant);
-
-                return RECURRING_MERCHANTS.contains(normalizedMerchant)
-                                ? StatementEntryType.RECURRING
-                                : StatementEntryType.PURCHASE;
-        }
-
-        private String normalizeMerchantKey(String merchant) {
-                if (merchant == null) {
-                        return "";
-                }
-
-                String normalized = merchant.toLowerCase(Locale.ROOT);
-                StringBuilder key = new StringBuilder();
-
-                normalized.codePoints()
-                                .filter(Character::isLetterOrDigit)
-                                .forEach(key::appendCodePoint);
-
-                return key.toString();
+                return null;
         }
 
         // ===================
@@ -330,74 +328,43 @@ public class StatementEntryService {
 
         private void validateEntryType(
                         StatementEntryType entryType,
-                        Integer installmentNumber,
-                        Integer totalInstallments) {
+                        Integer monthlyPaymentNumber,
+                        Integer totalMonthlyPayments) {
 
                 if (entryType != StatementEntryType.RECURRING) {
+                        if ((monthlyPaymentNumber == null) != (totalMonthlyPayments == null)) {
+                                throw new IllegalArgumentException(
+                                                "Indica tanto la mensualidad actual como el total de meses MSI");
+                        }
                         return;
                 }
 
-                if (installmentNumber != null
-                                || totalInstallments != null) {
+                if (monthlyPaymentNumber != null
+                                || totalMonthlyPayments != null) {
 
                         throw new IllegalArgumentException(
                                         "Los movimientos recurrentes no pueden tener información MSI");
                 }
         }
 
-        // ===================
-        // CALCULATE MSI
-        // ===================
+        private MsiPurchase resolveMsiPurchase(
+                        StatementEntry entry,
+                        Concept category,
+                        Integer totalMonthlyPayments) {
 
-        private void calculateMsiValues(
-                        StatementEntry entry) {
-
-                if (entry.getEntryType() != StatementEntryType.PURCHASE
-                                || entry.getInstallmentNumber() == null
-                                || entry.getTotalInstallments() == null) {
-
-                        entry.setPurchaseAmount(null);
-                        entry.setRemainingInstallments(null);
-                        entry.setRemainingInstallmentsAmount(null);
-
-                        return;
-                }
-
-                int installmentNumber = entry.getInstallmentNumber();
-                int totalInstallments = entry.getTotalInstallments();
-
-                if (installmentNumber < 1
-                                || totalInstallments < 1
-                                || installmentNumber > totalInstallments) {
-
-                        throw new IllegalArgumentException(
-                                        "La mensualidad MSI debe estar entre 1 y el total de meses");
-                }
-
-                BigDecimal purchaseAmount = entry.getAmount()
-                                .multiply(
-                                                BigDecimal.valueOf(totalInstallments))
-                                .setScale(
-                                                2,
-                                                RoundingMode.HALF_UP);
-
-                int remainingInstallments = totalInstallments - installmentNumber + 1;
-
-                BigDecimal remainingInstallmentsAmount = entry.getAmount()
-                                .multiply(
-                                                BigDecimal.valueOf(remainingInstallments))
-                                .setScale(
-                                                2,
-                                                RoundingMode.HALF_UP);
-
-                entry.setPurchaseAmount(
-                                purchaseAmount);
-
-                entry.setRemainingInstallments(
-                                remainingInstallments);
-
-                entry.setRemainingInstallmentsAmount(
-                                remainingInstallmentsAmount);
+                return msiPurchaseService.resolveOrCreate(
+                                entry.getStatement().getUserCard(),
+                                entry.getStatement(),
+                                category.getCategoryId(),
+                                entry.getDebtor(),
+                                entry.getDescription(),
+                                entry.getMerchant(),
+                                entry.getDate(),
+                                entry.getMonthlyPaymentNumber(),
+                                entry.getEntryType() == StatementEntryType.RECURRING
+                                                ? null
+                                                : totalMonthlyPayments,
+                                entry);
         }
 
         // ===================
